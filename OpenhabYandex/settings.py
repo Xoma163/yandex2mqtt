@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'OpenhabYandex.wsgi.application'
 DEFAULT_DB = 'default'
 
 DATABASES = {
-    DEFAULT_DB: env.db('DATABASE_URL', default='postgres:///OpenhabYandex'),
+    DEFAULT_DB: env.db('DATABASE_URL', default='postgres:///openhab_yandex'),
 }
 
 # Password validation
