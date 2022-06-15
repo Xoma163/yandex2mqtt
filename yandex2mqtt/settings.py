@@ -207,4 +207,9 @@ REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False
 }
 
-# LOGIN_URL='/admin/login/'
+LOGIN_URL = '/admin/login/'
+CSRF_TRUSTED_ORIGINS = ['https://yandex2mqtt.andrewsha.net']
+OAUTH2_PROVIDER = {
+    "PKCE_REQUIRED": False
+}
+APPEND_SLASH=False
