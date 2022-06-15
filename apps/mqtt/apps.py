@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class YandexConfig(AppConfig):
+class MqttConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.yandex'
+    name = 'apps.mqtt'
