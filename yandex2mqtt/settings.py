@@ -46,6 +46,7 @@ VENDOR_APPS = [
     # 'webpack_loader',
     'rest_framework',
     'oauth2_provider',
+    "django_extensions"
 ]
 
 # apps.*
@@ -93,7 +94,7 @@ WSGI_APPLICATION = 'yandex2mqtt.wsgi.application'
 DEFAULT_DB = 'default'
 
 DATABASES = {
-    DEFAULT_DB: env.db('DATABASE_URL', default='postgres:///openhab_yandex'),
+    DEFAULT_DB: env.db('DATABASE_URL', default='postgres:///yandex2mqtt'),
 }
 
 # Password validation
