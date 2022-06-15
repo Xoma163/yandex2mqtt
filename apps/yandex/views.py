@@ -1,6 +1,16 @@
+import json
+
 from django.http import HttpResponse
+from django.http.response import JsonResponse
 
 from django.views.decorators.csrf import csrf_exempt
+from oauth2_provider.models import AccessToken
+
+
+class UTF8JsonResponse(JsonResponse):
+    def __init__(self, *args, json_dumps_params=None, **kwargs):
+        json_dumps_params = {"ensure_ascii": False, **(json_dumps_params or {})}
+        super().__init__(*args, json_dumps_params=json_dumps_params, **kwargs)
 
 
 @csrf_exempt
@@ -8,13 +18,35 @@ def index(request):
     return HttpResponse(status=200)
 
 
-@csrf_exempt
 def user_devices(request):
-    return HttpResponse(status=200)
+    token = request.headers['authorization'].replace("Bearer ", "")
+    user = AccessToken.objects.get(token=token).user
+
+    data = {
+        "request_id": request.headers['X-Request-Id'],
+        "payload": {
+            "user_id": str(user.pk),
+            "devices": [
+                {
+                    "id": "1",
+                    "name": "Тестовая штука",
+                    "room": "Туалет",
+                    "type": "devices.types.socket",
+                    "capabilities": [
+                        {
+                            "type": "devices.capabilities.on_off"
+                        },
+                    ]
+                },
+            ]
+        }
+    }
+    return UTF8JsonResponse(data, status=200)
 
 
 @csrf_exempt
 def user_devices_action(request):
+    data = json.loads(request.body)['payload']
     return HttpResponse(status=200)
 
 

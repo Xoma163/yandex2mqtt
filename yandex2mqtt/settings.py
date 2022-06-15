@@ -46,12 +46,12 @@ VENDOR_APPS = [
     # 'webpack_loader',
     'rest_framework',
     'oauth2_provider',
+    # 'corsheaders',
     "django_extensions"
 ]
 
 # apps.*
 PROJECT_APPS = [
-    'apps.oauth',
     'apps.mqtt',
     'apps.yandex',
     'apps.main',
@@ -63,6 +63,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # 'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -212,4 +213,4 @@ CSRF_TRUSTED_ORIGINS = ['https://yandex2mqtt.andrewsha.net']
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": False
 }
-APPEND_SLASH=False
+APPEND_SLASH = False
