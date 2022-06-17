@@ -1,6 +1,6 @@
 from apps.yandex.properties.FloatPropertiesUtils.Unit import Unit
 from apps.yandex.properties.FloatPropertiesUtils.Instance import Instance
-from apps.yandex.properties.Properties import Properties
+from apps.yandex.properties.Property import Properties
 
 
 class FloatProperties(Properties):

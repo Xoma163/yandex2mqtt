@@ -2,7 +2,7 @@ from typing import List
 
 from apps.yandex.properties.EventPropertiesUtils.Event import Event
 from apps.yandex.properties.EventPropertiesUtils.Instance import Instance
-from apps.yandex.properties.Properties import Properties
+from apps.yandex.properties.Property import Properties
 
 
 class EventProperties(Properties):

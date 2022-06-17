@@ -1,4 +1,4 @@
-class Properties:
+class Property:
     def __init__(self, **kwargs):
         self.type = None
         self.retrievable = kwargs.get('retrievable', True)
