@@ -22,23 +22,13 @@ def user_devices(request):
     token = request.headers['authorization'].replace("Bearer ", "")
     user = AccessToken.objects.get(token=token).user
 
+    devices = [device.get_json() for device in user.devices]
+
     data = {
         "request_id": request.headers['X-Request-Id'],
         "payload": {
             "user_id": str(user.pk),
-            "devices": [
-                {
-                    "id": "1",
-                    "name": "Тестовая штука",
-                    "room": "Туалет",
-                    "type": "devices.types.socket",
-                    "capabilities": [
-                        {
-                            "type": "devices.capabilities.on_off"
-                        },
-                    ]
-                },
-            ]
+            "devices": devices
         }
     }
     return UTF8JsonResponse(data, status=200)
