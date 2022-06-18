@@ -8,13 +8,15 @@ class MqttClient:
     def __init__(self):
         self.client = mqtt.Client()
         self.client.on_connect = self.on_connect
-        self.client.on_message = self.on_message
-
         self.client.username_pw_set(MQTT_CONFIG['login'], MQTT_CONFIG['password'])
         self.client.connect(MQTT_CONFIG['url'], MQTT_CONFIG['port'], 60)
-        self.client.loop_forever()
 
-    def on_connect(self, client, userdata, flags, rc):
+    def loop(self):
+        self.client.loop_forever()
+        self.client.on_message = self.on_message
+
+    @staticmethod
+    def on_connect(client, userdata, flags, rc):
         if rc != 0:
             raise RuntimeError(f"MqttClient connected with error_code={rc}")
         client.subscribe("#")
