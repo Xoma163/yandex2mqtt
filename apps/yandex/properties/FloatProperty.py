@@ -29,13 +29,9 @@ class FloatProperties(Property):
         super().__init__(**kwargs)
 
         if instance:
-            if not isinstance(instance, Instance):
-                raise RuntimeError("instance must be Instance instance")
             self.parameters["instance"] = instance.value
 
         if unit:
-            if not isinstance(unit, Unit):
-                raise RuntimeError("unit must be Unit instance")
             if unit not in self.ALLOWED_UNITS_BY_INSTANCE[instance]:
                 allowed_units_str = ", ".join([x.value for x in self.ALLOWED_UNITS_BY_INSTANCE[instance]])
                 raise RuntimeError(f"unit must be in {allowed_units_str} for instance {instance}")

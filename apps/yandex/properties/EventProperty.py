@@ -23,13 +23,9 @@ class EventProperties(Property):
         super().__init__(**kwargs)
 
         if instance:
-            if not isinstance(instance, Instance):
-                raise RuntimeError("instance must be Instance instance")
             self.parameters["instance"] = instance.value
 
         if event:
-            if not isinstance(event, Event):
-                raise RuntimeError("event must be Event instance")
             if event not in self.ALLOWED_EVENTS_BY_INSTANCE[instance]:
                 allowed_events_str = ", ".join([x.value for x in self.ALLOWED_EVENTS_BY_INSTANCE[instance]])
                 raise RuntimeError(f"event must be in {allowed_events_str} for instance {instance}")

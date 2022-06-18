@@ -5,7 +5,7 @@ class Property:
         self.reportable = kwargs.get('reportable', False)
         self.parameters = {}
 
-    def get_json(self):
+    def get_for_device_list(self):
         return {
             "type": self.type,
             "retrievable": self.retrievable,
