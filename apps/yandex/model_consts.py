@@ -1,20 +1,18 @@
 from django.db.models import TextChoices
 
-from apps.yandex.consts import DeviceType, CapabilityType, RangeInstance, RangeUnit, ModeInstance, Mode, ToggleInstance
+from apps.yandex.consts import DeviceType, CapabilityType, RangeInstance, RangeUnit, ModeInstance, Mode, ToggleInstance, \
+    ColorModel, Protocol
 
-class ColorModel(TextChoices):
-    """
-    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/color_setting.html
-    """
-    RGB = "rgb"
-    HSV = "hsv"
+ColorModelChoices = [
+    (ColorModel.RGB, "RGB"),
+    (ColorModel.HSV, "HSV"),
+]
 
-class Protocol(TextChoices):
-    """
-    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/video_stream.html
-    """
-    HLS = "hls"
-    PROGRESSIVE_MP4 = "progressive_mp4"
+ProtocolChoices = [
+    (Protocol.HLS, "HLS"),
+    (Protocol.PROGRESSIVE_MP4, "PROGRESSIVE_MP4"),
+]
+
 
 DeviceTypeChoices = [
     (DeviceType.LIGHT, 'LIGHT. Устройство, которое имеет управляемые светящиеся элементы'),

@@ -32,7 +32,7 @@ class Capability(models.Model):
     # mqtt
 
     # ColorSetting
-    color_model = models.CharField("Цветовая модель", max_length=10, choices=ColorModel.choices, blank=True)
+    color_model = models.CharField("Цветовая модель", max_length=10, choices=ColorModelChoices, blank=True)
     temp_k_min = models.PositiveIntegerField("Минимальная температура света", null=True,blank=True, validators=[MinValueValidator(2000), MaxValueValidator(9000)])
     temp_k_max = models.PositiveIntegerField("Максимальная температура света", null=True, blank=True, validators=[MinValueValidator(2000), MaxValueValidator(9000)])
     # Mode
@@ -50,7 +50,7 @@ class Capability(models.Model):
     # Toggle
     toggle_instance = models.CharField("instance", max_length=50, choices=ToggleInstanceChoices, blank=True)
     # VideoStream
-    protocol = models.CharField("Протокол", max_length=50, choices=Protocol.choices, blank=True)
+    protocol = models.CharField("Протокол", max_length=50, choices=ProtocolChoices, blank=True)
 
     # @formatter:on
 
@@ -200,12 +200,11 @@ class Capability(models.Model):
 
 class Device(models.Model):
     name = models.CharField("Название", max_length=100)
-    type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50,
-                            help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
-    room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True, blank=True)
+    type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50, help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
+    room = models.ForeignKey(Room, on_delete=models.SET_NULL, verbose_name="Комната", null=True, blank=True)
     description = models.TextField("Описание", max_length=100, blank=True)
-    custom_data = models.JSONField(default=dict, help_text="Кастомные данные", blank=True)
-    capabilities = models.ManyToManyField(Capability)
+    custom_data = models.JSONField(default=dict, verbose_name="Кастомные данные", blank=True)
+    capabilities = models.ManyToManyField(Capability, verbose_name="Возможности")
 
     def __str__(self):
         return self.name

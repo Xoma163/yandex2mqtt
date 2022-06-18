@@ -6,6 +6,22 @@ class Status(Enum):
     ERROR = "ERROR"
 
 
+class ColorModel(Enum):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/color_setting.html
+    """
+    RGB = "rgb"
+    HSV = "hsv"
+
+
+class Protocol(Enum):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/video_stream.html
+    """
+    HLS = "hls"
+    PROGRESSIVE_MP4 = "progressive_mp4"
+
+
 class DeviceType(Enum):
     """
     https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html
@@ -155,21 +171,21 @@ class RangeInstance(Enum):
     """
     https://yandex.ru/dev/dialogs/smart-home/doc/concepts/range-instance.html
     """
-    BRIGHTNESS = "brightness" # Изменение яркости световых элементов
-    CHANNEL = "channel" # Изменение канала, например телевизионного
-    HUMIDITY = "humidity" # Изменение влажности
-    OPEN = "open" # Открывание чего-либо (открывание штор, окна)
-    TEMPERATURE = "temperature" # Изменение температуры. Может обозначать температуру нагрева чайника, обогревателя или температуру кондиционера в каком-либо его режиме
-    VOLUME = "volume" # Изменение громкости устройства
+    BRIGHTNESS = "brightness"  # Изменение яркости световых элементов
+    CHANNEL = "channel"  # Изменение канала, например телевизионного
+    HUMIDITY = "humidity"  # Изменение влажности
+    OPEN = "open"  # Открывание чего-либо (открывание штор, окна)
+    TEMPERATURE = "temperature"  # Изменение температуры. Может обозначать температуру нагрева чайника, обогревателя или температуру кондиционера в каком-либо его режиме
+    VOLUME = "volume"  # Изменение громкости устройства
 
 
 class RangeUnit(Enum):
     """
     https://yandex.ru/dev/dialogs/smart-home/doc/concepts/range-instance.html
     """
-    PERCENT = "unit.percent" # Проценты
-    CELSIUS = "unit.temperature.celsius" # Цельсий
-    KELVIN = "unit.temperature.kelvin" # Кельвины
+    PERCENT = "unit.percent"  # Проценты
+    CELSIUS = "unit.temperature.celsius"  # Цельсий
+    KELVIN = "unit.temperature.kelvin"  # Кельвины
 
 
 class ToggleInstance(Enum):
