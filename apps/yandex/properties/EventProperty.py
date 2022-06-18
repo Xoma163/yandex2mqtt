@@ -1,11 +1,9 @@
-from typing import List
-
 from apps.yandex.properties.EventPropertiesUtils.Event import Event
 from apps.yandex.properties.EventPropertiesUtils.Instance import Instance
-from apps.yandex.properties.Property import Properties
+from apps.yandex.properties.Property import Property
 
 
-class EventProperties(Properties):
+class EventProperties(Property):
     """
     https://yandex.ru/dev/dialogs/smart-home/doc/concepts/event.html
     """

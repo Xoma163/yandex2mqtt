@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class ColorMode(Enum):
+class ColorModel(Enum):
     """
     https://yandex.ru/dev/dialogs/smart-home/doc/concepts/color_setting.html
     """

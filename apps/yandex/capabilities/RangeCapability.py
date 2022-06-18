@@ -18,9 +18,18 @@ class RangeCapability(Capability):
     }
 
     def __init__(self, instance: Instance, unit: Unit = None, random_access: bool = True,
-                 range_min: float = None, range_max: float = None, range_precision: float = None,**kwargs):
+                 range_min: float = None, range_max: float = None, range_precision: float = None,
+                 **kwargs):
         super().__init__(**kwargs)
         self.type = "devices.capabilities.range"
+        self.value = 0
+
+        self.instance = instance
+        self.unit = unit
+        self.random_access = random_access
+        self.range_min = range_min
+        self.range_max = range_max
+        self.range_precision = range_precision
 
         if instance:
             if not isinstance(instance, Instance):

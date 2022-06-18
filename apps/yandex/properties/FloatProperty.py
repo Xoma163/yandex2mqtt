@@ -1,9 +1,9 @@
 from apps.yandex.properties.FloatPropertiesUtils.Unit import Unit
 from apps.yandex.properties.FloatPropertiesUtils.Instance import Instance
-from apps.yandex.properties.Property import Properties
+from apps.yandex.properties.Property import Property
 
 
-class FloatProperties(Properties):
+class FloatProperties(Property):
     """
     https://yandex.ru/dev/dialogs/smart-home/doc/concepts/float.html
     """

@@ -7,9 +7,12 @@ class ToggleCapability(Capability):
     https://yandex.ru/dev/dialogs/smart-home/doc/concepts/toggle.html
     """
 
-    def __init__(self, instance: Instance,**kwargs):
+    def __init__(self, instance: Instance, **kwargs):
         super().__init__(**kwargs)
         self.type = "devices.capabilities.toggle"
+        self.value = False
+
+        self.instance = instance
 
         if not isinstance(instance, Instance):
             raise RuntimeError("instance must be Instance instance")

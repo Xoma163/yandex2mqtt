@@ -14,11 +14,15 @@ class ModeCapability(Capability):
         super().__init__(**kwargs)
         self.type = "devices.capabilities.mode"
 
+        self.instance = instance
+        self.modes = modes
+
         if not isinstance(instance, Instance):
             raise RuntimeError("instance must be Instance instance")
         self.parameters["instance"] = instance.value
 
         for mode in modes:
             if not isinstance(mode, Mode):
-                raise RuntimeError("mode in modes must be Mode instance")
+                raise RuntimeError("mode in modes list must be Mode instance")
         self.parameters["modes"] = [x.value for x in modes]
+        self.value = modes[0].value
