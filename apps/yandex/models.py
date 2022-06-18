@@ -2,7 +2,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from .models_utils import *
+
+from .consts import  Status, ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE
+from .model_consts import *
 
 
 class Room(models.Model):
@@ -17,46 +19,40 @@ class Room(models.Model):
 
 
 class Capability(models.Model):
+    # @formatter:off
+
     # Общее
     author = models.ForeignKey(get_user_model(), verbose_name="Автор", on_delete=models.CASCADE)
     name = models.CharField("Название", max_length=100, blank=True)
-    type = models.CharField("Тип устройства", max_length=100, choices=CapabilityType.choices)
+    type = models.CharField("Тип устройства", max_length=100, choices=CapabilityTypeChoices)
     parameters = models.JSONField("Параметры", default=dict, editable=False)
-    retrievable = models.BooleanField("Включенное оповещение", default=True,
-                                      help_text="Признак включенного оповещения об изменении состояния умения при помощи сервиса уведомлений")
-    reportable = models.BooleanField("Доступен ли запрос состояния", default=False,
-                                     help_text="Доступен ли для данного умения устройства запрос состояния")
+    retrievable = models.BooleanField("Включенное оповещение", default=True, help_text="Признак включенного оповещения об изменении состояния умения при помощи сервиса уведомлений")
+    reportable = models.BooleanField("Доступен ли запрос состояния", default=False, help_text="Доступен ли для данного умения устройства запрос состояния")
     value = models.JSONField(default=dict, help_text="Изначальное значение", blank=True)
     # mqtt
 
     # ColorSetting
     color_model = models.CharField("Цветовая модель", max_length=10, choices=ColorModel.choices, blank=True)
-    temp_k_min = models.PositiveIntegerField("Минимальная температура света",
-                                             validators=[MinValueValidator(2000), MaxValueValidator(9000)], null=True,
-                                             blank=True)
-    temp_k_max = models.PositiveIntegerField("Максимальная температура света",
-                                             validators=[MinValueValidator(2000), MaxValueValidator(9000)], null=True,
-                                             blank=True)
+    temp_k_min = models.PositiveIntegerField("Минимальная температура света", null=True,blank=True, validators=[MinValueValidator(2000), MaxValueValidator(9000)])
+    temp_k_max = models.PositiveIntegerField("Максимальная температура света", null=True, blank=True, validators=[MinValueValidator(2000), MaxValueValidator(9000)])
     # Mode
-    mode_instance = models.CharField("instance", max_length=50, choices=ModeInstance.choices, blank=True)
-    modes = ArrayField(models.CharField("mode", max_length=50, choices=Mode.choices), blank=True)
+    mode_instance = models.CharField("instance", max_length=50, choices=ModeInstanceChoices, blank=True)
+    modes = ArrayField(models.CharField("mode", max_length=50, choices=ModeChoices), blank=True)
     # OnOff
-    split = models.BooleanField("split", blank=True,
-                                help_text="За включение/выключение устройства у провайдера отвечают разные команды")
+    split = models.BooleanField("split", blank=True, help_text="За включение/выключение устройства у провайдера отвечают разные команды")
     # Range
-    range_instance = models.CharField("instance", max_length=50, choices=RangeInstance.choices, blank=True)
-    unit = models.CharField("Единица измерения", max_length=50, choices=RangeUnit.choices, blank=True)
-    random_access = models.BooleanField("Произвольные значения", blank=True,
-                                        help_text="Если эта возможность выключена, пользователю будет доступно только последовательное изменение значений — в большую или меньшую сторону. Например, изменение громкости телевизора при работе через ИК пульт.")
-    range_min = models.PositiveIntegerField("Минимальное значение", null=True, blank=True,
-                                            validators=[MinValueValidator(1), MaxValueValidator(100)])
-    range_max = models.PositiveIntegerField("Максимальное значение", null=True, blank=True,
-                                            validators=[MinValueValidator(1), MaxValueValidator(100)])
+    range_instance = models.CharField("instance", max_length=50, choices=RangeInstanceChoices, blank=True)
+    unit = models.CharField("Единица измерения", max_length=50, choices=RangeUnitChoices, blank=True)
+    random_access = models.BooleanField("Произвольные значения", blank=True, help_text="Если эта возможность выключена, пользователю будет доступно только последовательное изменение значений — в большую или меньшую сторону. Например, изменение громкости телевизора при работе через ИК пульт.")
+    range_min = models.PositiveIntegerField("Минимальное значение", null=True, blank=True,  validators=[MinValueValidator(1), MaxValueValidator(100)])
+    range_max = models.PositiveIntegerField("Максимальное значение", null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)])
     range_precision = models.PositiveIntegerField("Шаг", blank=True, null=True)
     # Toggle
-    toggle_instance = models.CharField("instance", max_length=50, choices=ToggleInstance.choices, blank=True)
+    toggle_instance = models.CharField("instance", max_length=50, choices=ToggleInstanceChoices, blank=True)
     # VideoStream
     protocol = models.CharField("Протокол", max_length=50, choices=Protocol.choices, blank=True)
+
+    # @formatter:on
 
     def save(self, **kwargs):
         self.parameters = {}
@@ -204,7 +200,8 @@ class Capability(models.Model):
 
 class Device(models.Model):
     name = models.CharField("Название", max_length=100)
-    type = models.CharField("Тип", choices=DeviceType.choices, max_length=50)
+    type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50,
+                            help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
     room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True, blank=True)
     description = models.TextField("Описание", max_length=100, blank=True)
     custom_data = models.JSONField(default=dict, help_text="Кастомные данные", blank=True)
