@@ -2,9 +2,12 @@ import json
 
 from django.http import HttpResponse
 from django.http.response import JsonResponse
+from django.views import View
 
 from django.views.decorators.csrf import csrf_exempt
 from oauth2_provider.models import AccessToken
+
+from apps.main.mixins import CSRFExemptMixin
 
 
 class UTF8JsonResponse(JsonResponse):
@@ -13,64 +16,66 @@ class UTF8JsonResponse(JsonResponse):
         super().__init__(*args, json_dumps_params=json_dumps_params, **kwargs)
 
 
-@csrf_exempt
-def index(request):
-    return HttpResponse(status=200)
+class IndexView(View):
+    def head(self, request):
+        return HttpResponse(status=200)
 
 
-def user_devices(request):
-    token = request.headers['authorization'].replace("Bearer ", "")
-    user = AccessToken.objects.get(token=token).user
+class UserDevicesView(View):
+    def get(self, request):
+        if not request.body:
+            return HttpResponse(status=200)
 
-    devices = user.devices.all()
-    devices_data = [device.get_for_device_list() for device in devices]
+        devices = request.user.devices.all()
+        devices_data = [device.get_for_device_list() for device in devices]
 
-    response_data = {
-        "request_id": request.headers['X-Request-Id'],
-        "payload": {
-            "user_id": str(user.pk),
-            "devices": devices_data
+        response_data = {
+            "request_id": request.headers['X-Request-Id'],
+            "payload": {
+                "user_id": str(request.user.pk),
+                "devices": devices_data
+            }
         }
-    }
-    # response_data['payload']['devices'][0]['capabilities']
-    return UTF8JsonResponse(response_data, status=200)
+
+        return UTF8JsonResponse(response_data, status=200)
 
 
-@csrf_exempt
-def user_devices_action(request):
-    token = request.headers['authorization'].replace("Bearer ", "")
-    user = AccessToken.objects.get(token=token).user
-    body = json.loads(request.body)
-    devices = body['payload']['devices']
-    devices_data = [user.devices.get(pk=device['id']).get_for_switch_state(device['capabilities']) for device in devices]
-    response_data = {
-        "request_id": request.headers['X-Request-Id'],
-        "payload": {
-            "devices": devices_data
+class UserDevicesActionView(CSRFExemptMixin, View):
+    def post(self, request):
+        if not request.body:
+            return HttpResponse(status=200)
+        body = json.loads(request.body)
+        devices = body['payload']['devices']
+        devices_data = [request.user.devices.get(pk=device['id']).get_for_switch_state(device['capabilities']) for device in
+                        devices]
+        response_data = {
+            "request_id": request.headers['X-Request-Id'],
+            "payload": {
+                "devices": devices_data
+            }
         }
-    }
-    return UTF8JsonResponse(response_data, status=200)
+        return UTF8JsonResponse(response_data, status=200)
 
 
-@csrf_exempt
-def user_devices_query(request):
-    token = request.headers['authorization'].replace("Bearer ", "")
-    user = AccessToken.objects.get(token=token).user
-    body = json.loads(request.body)
-    devices_pk = [x['id'] for x in body['devices']]
-    devices = user.devices.filter(pk__in=devices_pk)
-    devices_data = [device.get_for_state() for device in devices]
+class UserDevicesQueryView(CSRFExemptMixin, View):
+    def post(self, request):
+        if not request.body:
+            return HttpResponse(status=200)
+        body = json.loads(request.body)
+        devices_pk = [x['id'] for x in body['devices']]
+        devices = request.user.devices.filter(pk__in=devices_pk)
+        devices_data = [device.get_for_state() for device in devices]
 
-    response_data = {
-        "request_id": request.headers['X-Request-Id'],
-        "payload": {
-            "devices": devices_data
+        response_data = {
+            "request_id": request.headers['X-Request-Id'],
+            "payload": {
+                "devices": devices_data
+            }
         }
-    }
 
-    return UTF8JsonResponse(response_data, status=200)
+        return UTF8JsonResponse(response_data, status=200)
 
 
-@csrf_exempt
-def user_unlink(request):
-    return HttpResponse(status=200)
+class UserUnlinkView(CSRFExemptMixin, View):
+    def post(self, request):
+        return HttpResponse(status=200)

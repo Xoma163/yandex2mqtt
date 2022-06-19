@@ -1,6 +1,10 @@
+import datetime
+
+import requests
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from oauth2_provider.models import AccessToken
 
 from .consts import Status, ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE
 from .model_consts import *
@@ -29,6 +33,65 @@ class CapabilityMode(models.Model):
         verbose_name_plural = "Функции(Mode) возможности"
 
 
+class Device(models.Model):
+    author = models.ForeignKey(get_user_model(), verbose_name="Автор", on_delete=models.CASCADE, related_name="devices")
+    name = models.CharField("Название", max_length=100)
+    type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50,
+                            help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
+    room = models.ForeignKey(Room, on_delete=models.SET_NULL, verbose_name="Комната", null=True, blank=True)
+    description = models.TextField("Описание", max_length=100, blank=True)
+    custom_data = models.JSONField(default=dict, verbose_name="Кастомные данные", blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Устройство"
+        verbose_name_plural = "Устройства"
+
+    # yandex things
+    def get_for_device_list(self):
+        data = {
+            "id": str(self.pk),
+            "name": self.name,
+            "type": self.type,
+        }
+        if self.room:
+            data['room'] = self.room.name
+        if self.description:
+            data['description'] = self.description
+        if self.custom_data:
+            data['custom_data'] = self.custom_data
+        if self.capabilities:
+            data['capabilities'] = [x.get_for_device_list() for x in self.capabilities.all()]
+
+        return data
+
+    def get_for_state(self):
+        data = {
+            'id': str(self.pk),
+            'capabilities': []
+        }
+        if self.capabilities:
+            for capability in self.capabilities.all():
+                data['capabilities'] += capability.state
+        return data
+
+    def get_for_switch_state(self, new_values):
+        data = {
+            'id': str(self.pk),
+            'capabilities': []
+        }
+        # ToDo: new state
+        if self.capabilities:
+            for capability in self.capabilities.all():
+                for value in new_values:
+                    if value['type'] == capability.type:
+                        data['capabilities'].append(capability.set_state(value['state']))
+                        break
+        return data
+
+
 class Capability(models.Model):
     # Общее
     name = models.CharField("Название", max_length=100, blank=True)
@@ -45,10 +108,8 @@ class Capability(models.Model):
     state_topic = models.CharField("Топик для состояния", max_length=100)
     # ColorSetting
     color_model = models.CharField("Цветовая модель", max_length=10, choices=ColorModelChoices, blank=True)
-    temp_k_min = models.PositiveIntegerField("Минимальная температура света", null=True, blank=True,
-                                             validators=[MinValueValidator(2000), MaxValueValidator(9000)])
-    temp_k_max = models.PositiveIntegerField("Максимальная температура света", null=True, blank=True,
-                                             validators=[MinValueValidator(2000), MaxValueValidator(9000)])
+    temp_k_min = models.PositiveIntegerField("Минимальная температура света", null=True, blank=True)
+    temp_k_max = models.PositiveIntegerField("Максимальная температура света", null=True, blank=True)
     # Mode
     mode_instance = models.CharField("instance", max_length=50, choices=ModeInstanceChoices, blank=True)
     modes = models.ManyToManyField(CapabilityMode, blank=True)
@@ -69,6 +130,8 @@ class Capability(models.Model):
     toggle_instance = models.CharField("instance", max_length=50, choices=ToggleInstanceChoices, blank=True)
     # VideoStream
     protocol = models.CharField("Протокол", max_length=50, choices=ProtocolChoices, blank=True)
+
+    device = models.ForeignKey(Device, verbose_name="Устройство", related_name="capabilities", on_delete=models.CASCADE)
 
     def save(self, **kwargs):
         constructor_map = {
@@ -252,63 +315,3 @@ class Capability(models.Model):
     class Meta:
         verbose_name = "Возможность"
         verbose_name_plural = "Возможности"
-
-
-class Device(models.Model):
-    author = models.ForeignKey(get_user_model(), verbose_name="Автор", on_delete=models.CASCADE, related_name="devices")
-    name = models.CharField("Название", max_length=100)
-    type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50,
-                            help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
-    room = models.ForeignKey(Room, on_delete=models.SET_NULL, verbose_name="Комната", null=True, blank=True)
-    description = models.TextField("Описание", max_length=100, blank=True)
-    custom_data = models.JSONField(default=dict, verbose_name="Кастомные данные", blank=True)
-    capabilities = models.ManyToManyField(Capability, verbose_name="Возможности")
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Устройство"
-        verbose_name_plural = "Устройства"
-
-    # yandex things
-    def get_for_device_list(self):
-        data = {
-            "id": str(self.pk),
-            "name": self.name,
-            "type": self.type,
-        }
-        if self.room:
-            data['room'] = self.room.name
-        if self.description:
-            data['description'] = self.description
-        if self.custom_data:
-            data['custom_data'] = self.custom_data
-        if self.capabilities:
-            data['capabilities'] = [x.get_for_device_list() for x in self.capabilities.all()]
-
-        return data
-
-    def get_for_state(self):
-        data = {
-            'id': str(self.pk),
-            'capabilities': []
-        }
-        if self.capabilities:
-            for capability in self.capabilities.all():
-                data['capabilities'] += capability.state
-        return data
-
-    def get_for_switch_state(self, new_values):
-        data = {
-            'id': str(self.pk),
-            'capabilities': []
-        }
-        # ToDo: new state
-        if self.capabilities:
-            for capability in self.capabilities.all():
-                for value in new_values:
-                    if value['type'] == capability.type:
-                        data['capabilities'].append(capability.set_state(value['state']))
-                        break
-        return data

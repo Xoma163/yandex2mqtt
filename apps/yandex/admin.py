@@ -9,7 +9,7 @@ class CapabilityAdmin(ModelAdmin):
     readonly_fields = ('state', 'parameters',)
     fieldsets = (
         ('Общее', {
-            'fields': ('name', 'type', 'retrievable', 'reportable', 'state', 'parameters'),
+            'fields': ('name', 'type', 'device', 'retrievable', 'reportable', 'state', 'parameters'),
         }),
         ('mqtt', {
             'fields': ('mqtt_config', 'command_topic', 'state_topic'),
