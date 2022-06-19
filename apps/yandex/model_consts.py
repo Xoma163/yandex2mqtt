@@ -4,13 +4,13 @@ from apps.yandex.consts import DeviceType, CapabilityType, RangeInstance, RangeU
     ColorModel, Protocol
 
 ColorModelChoices = [
-    (ColorModel.RGB, "RGB"),
-    (ColorModel.HSV, "HSV"),
+    (ColorModel.RGB.value, "RGB"),
+    (ColorModel.HSV.value, "HSV"),
 ]
 
 ProtocolChoices = [
-    (Protocol.HLS, "HLS"),
-    (Protocol.PROGRESSIVE_MP4, "PROGRESSIVE_MP4"),
+    (Protocol.HLS.value, "HLS"),
+    (Protocol.PROGRESSIVE_MP4.value, "PROGRESSIVE_MP4"),
 ]
 
 

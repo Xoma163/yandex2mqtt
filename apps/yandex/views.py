@@ -22,27 +22,53 @@ def user_devices(request):
     token = request.headers['authorization'].replace("Bearer ", "")
     user = AccessToken.objects.get(token=token).user
 
-    devices = [device.get_json() for device in user.devices.all()]
+    devices = user.devices.all()
+    devices_data = [device.get_for_device_list() for device in devices]
 
-    data = {
+    response_data = {
         "request_id": request.headers['X-Request-Id'],
         "payload": {
             "user_id": str(user.pk),
-            "devices": devices
+            "devices": devices_data
         }
     }
-    return UTF8JsonResponse(data, status=200)
+    # response_data['payload']['devices'][0]['capabilities']
+    return UTF8JsonResponse(response_data, status=200)
 
 
 @csrf_exempt
 def user_devices_action(request):
-    data = json.loads(request.body)['payload']
-    return HttpResponse(status=200)
+    token = request.headers['authorization'].replace("Bearer ", "")
+    user = AccessToken.objects.get(token=token).user
+    body = json.loads(request.body)
+    devices = body['payload']['devices']
+    devices_data = [user.devices.get(pk=device['id']).get_for_switch_state(device['capabilities']) for device in devices]
+    response_data = {
+        "request_id": request.headers['X-Request-Id'],
+        "payload": {
+            "devices": devices_data
+        }
+    }
+    return UTF8JsonResponse(response_data, status=200)
 
 
 @csrf_exempt
 def user_devices_query(request):
-    return HttpResponse(status=200)
+    token = request.headers['authorization'].replace("Bearer ", "")
+    user = AccessToken.objects.get(token=token).user
+    body = json.loads(request.body)
+    devices_pk = [x['id'] for x in body['devices']]
+    devices = user.devices.filter(pk__in=devices_pk)
+    devices_data = [device.get_for_state() for device in devices]
+
+    response_data = {
+        "request_id": request.headers['X-Request-Id'],
+        "payload": {
+            "devices": devices_data
+        }
+    }
+
+    return UTF8JsonResponse(response_data, status=200)
 
 
 @csrf_exempt

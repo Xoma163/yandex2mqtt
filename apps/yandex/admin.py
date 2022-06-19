@@ -5,10 +5,10 @@ from .models import *
 @admin.register(Capability)
 class CapabilityAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'type')
-    readonly_fields = ('parameters',)
+    readonly_fields = ('state','parameters',)
     fieldsets = (
         ('Общее', {
-            'fields': ('name', 'type', 'retrievable', 'reportable', 'value', 'parameters'),
+            'fields': ('name', 'type', 'retrievable', 'reportable', 'state', 'parameters'),
         }),
         ('mqtt', {
             'fields': ('mqtt_config', 'command_topic', 'state_topic'),

@@ -22,7 +22,7 @@ class CapabilityMode(models.Model):
     mode = models.CharField("mode", max_length=50, choices=ModeChoices)
 
     def __str__(self):
-        return self.mode
+        return self.get_mode_display()
 
     class Meta:
         verbose_name = "Функция(Mode) возможности"
@@ -38,7 +38,7 @@ class Capability(models.Model):
                                       help_text="Признак включенного оповещения об изменении состояния умения при помощи сервиса уведомлений")
     reportable = models.BooleanField("Доступен ли запрос состояния", default=False,
                                      help_text="Доступен ли для данного умения устройства запрос состояния")
-    value = models.JSONField(default=dict, help_text="Изначальное значение", blank=True)
+    state = models.JSONField(default=list, help_text="Стейт", blank=True)
     # mqtt
     mqtt_config = models.ForeignKey(MqttConfig, verbose_name="Конфигурация MQTT", on_delete=models.SET_NULL, null=True)
     command_topic = models.CharField("Топик для команд", max_length=100)
@@ -51,7 +51,6 @@ class Capability(models.Model):
                                              validators=[MinValueValidator(2000), MaxValueValidator(9000)])
     # Mode
     mode_instance = models.CharField("instance", max_length=50, choices=ModeInstanceChoices, blank=True)
-    # modes = ArrayField(models.CharField("mode", max_length=50, choices=ModeChoices), blank=True)
     modes = models.ManyToManyField(CapabilityMode, blank=True)
     # OnOff
     split = models.BooleanField("split", blank=True,
@@ -85,40 +84,53 @@ class Capability(models.Model):
         super(Capability, self).save()
 
     def init_color_settings(self):
-        if not self.color_model or not self.temp_k_min or not self.temp_k_max:
+        if not self.color_model and not self.temp_k_min and not self.temp_k_max:
             raise RuntimeError(f"color_model or temp_k_min or temp_k_max must be provided for type {self.type}")
-
+        self.parameters = {}
         if self.color_model:
-            self.parameters = {
-                "color_model": self.color_model,  # hsv/rgb
-            }
-            if self.color_model == ColorModel.HSV:
-                self.value = {'h': 0, 's': 0, 'v': 0}  # [0; 360] [0; 100] [0; 100]
-            elif self.color_model == ColorModel.RGB:
-                self.value = 0  # [0; 16777215]
-        else:
-            if self.temp_k_min and self.temp_k_min:
-                if self.temp_k_max < self.temp_k_min:
-                    raise RuntimeError("temp_k_max must be higher than temp_k_min")
-                self.parameters = {
-                    'temperature_k': {
-                        'min': self.temp_k_min,
-                        'max': self.temp_k_max
-                    }}
+            self.parameters["color_model"] = self.color_model  # hsv/rgb
+            if self.color_model == ColorModel.HSV.value:
+                if not self.pk:
+                    self.state.append({
+                        "instance": "hsv",
+                        "value": {
+                            "h": 0,
+                            "s": 0,
+                            "v": 0
+                        }
+                    })
+            elif self.color_model == ColorModel.RGB.value:
+                if not self.pk:
+                    self.state.append({
+                        "instance": "rgb",
+                        "value": 0
+                    })
 
-            elif self.temp_k_min:
-                self.parameters['temperature_k'] = self.temp_k_min
-            elif self.temp_k_max:
-                self.parameters['temperature_k'] = self.temp_k_max
-            self.value = 2000
+        if self.temp_k_min and self.temp_k_max is None or self.temp_k_max and self.temp_k_min is None:
+            raise RuntimeError("temp_k_min and temp_k_max must be provided together")
+
+        if self.temp_k_max and self.temp_k_min:
+            if self.temp_k_max < self.temp_k_min:
+                raise RuntimeError("temp_k_max must be higher than temp_k_min")
+            self.parameters['temperature_k'] = {"min": self.temp_k_min, "max": self.temp_k_max}
+            if not self.pk:
+                self.state.append({
+                    "instance": "temperature_k",
+                    "value": self.temp_k_min or self.temp_k_max
+                })
 
     def init_mode(self):
+        super().save()
         if not self.mode_instance and not self.modes:
             raise RuntimeError(f"mode_instance and modes must be provided for type {self.type}")
 
         self.parameters["instance"] = self.mode_instance
-        self.parameters["modes"] = self.modes
-        self.value = self.modes.first().mode
+        self.parameters["modes"] = [{"value": x.mode} for x in self.modes.all()]
+        if not self.pk:
+            self.state.append({
+                "instance": self.mode_instance,
+                "value": self.parameters['modes'][0]['value']
+            })
 
     def init_on_off(self):
         if not self.retrievable:
@@ -126,7 +138,11 @@ class Capability(models.Model):
                 self.parameters = {
                     "split": self.split
                 }
-        self.value = False
+        if not self.pk:
+            self.state.append({
+                "instance": "on",
+                "value": False
+            })
 
     def init_range(self):
         if not self.range_instance:
@@ -155,14 +171,21 @@ class Capability(models.Model):
         if self.range_precision:
             self.parameters["range"]['range_precision'] = self.range_precision
 
-        self.value = 0
+        if not self.pk:
+            self.state.append({
+                "instance": self.range_instance,
+                "value": 0
+            })
 
     def init_toggle(self):
         if not self.toggle_instance:
             raise RuntimeError(f"toggle_instance must be provided for type {self.type}")
         self.parameters["instance"] = self.toggle_instance
-        self.value = False
-
+        if not self.pk:
+            self.state.append({
+                "instance": self.toggle_instance,
+                "value": False
+            })
 
     def init_video_stream(self):
         self.retrievable = False
@@ -173,38 +196,34 @@ class Capability(models.Model):
         self.parameters = {
             "protocols": [self.protocol]
         }
-        self.value = ""
+        if not self.pk:
+            self.state.append({
+                "instance": self.protocol,
+                "value": ""
+            })
 
     def get_for_device_list(self):
-        return {
-            'type': self.type,
-            'retrievable': self.retrievable,
-            'reportable': self.reportable,
-            'parameters': self.parameters,
-        }
+        return
 
-    def get_state(self):
-        # ToDo: hsv,
-        return {
-            "type": self.type,
-            "state": {
-                "instance": "on",
-                "value": self.value,
-            }
-        }
-
-    def switch_state(self, new_value):
-        # ToDo: switch with new_value
+    def set_state(self, new_state):
+        # ToDo: mqtt
         error = None
         try:
-            self.value = new_value
+            _self_state = []
+            for state_item in self.state:
+                if state_item['instance'] == new_state['instance']:
+                    _self_state.append(new_state)
+                else:
+                    _self_state.append(state_item)
+            self.state = _self_state
+            self.save()
         except Exception as e:
             error = f"Ошибка какая-то\n{str(e)}"
 
         data = {
             "type": self.type,
             "state": {
-                "instance": "on"
+                "instance": new_state['instance']
             }
         }
         if not error:
@@ -244,11 +263,11 @@ class Device(models.Model):
         verbose_name = "Устройство"
         verbose_name_plural = "Устройства"
 
-    def get_json(self):
+    # yandex things
+    def get_for_device_list(self):
         data = {
             "id": str(self.pk),
             "name": self.name,
-            # "room": "Туалет",
             "type": self.type,
         }
         if self.room:
@@ -260,4 +279,28 @@ class Device(models.Model):
         if self.capabilities:
             data['capabilities'] = [x.get_for_device_list() for x in self.capabilities.all()]
 
+        return data
+
+    def get_for_state(self):
+        data = {
+            'id': str(self.pk),
+            'capabilities': []
+        }
+        if self.capabilities:
+            for capability in self.capabilities.all():
+                data['capabilities'] += capability.state
+        return data
+
+    def get_for_switch_state(self, new_values):
+        data = {
+            'id': str(self.pk),
+            'capabilities': []
+        }
+        # ToDo: new state
+        if self.capabilities:
+            for capability in self.capabilities.all():
+                for value in new_values:
+                    if value['type'] == capability.type:
+                        data['capabilities'].append(capability.set_state(value['state']))
+                        break
         return data
