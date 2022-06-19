@@ -214,10 +214,3 @@ OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": False
 }
 APPEND_SLASH = False
-
-MQTT_CONFIG = {
-    'login': env.str("MQTT_LOGIN"),
-    'password': env.str("MQTT_PASSWORD"),
-    'url': env.str("MQTT_URL"),
-    'port': env.int("MQTT_PORT"),
-}

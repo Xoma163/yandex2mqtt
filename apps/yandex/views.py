@@ -22,7 +22,7 @@ def user_devices(request):
     token = request.headers['authorization'].replace("Bearer ", "")
     user = AccessToken.objects.get(token=token).user
 
-    devices = [device.get_json() for device in user.devices]
+    devices = [device.get_json() for device in user.devices.all()]
 
     data = {
         "request_id": request.headers['X-Request-Id'],

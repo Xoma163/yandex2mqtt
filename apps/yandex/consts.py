@@ -95,16 +95,16 @@ class Mode(Enum):
     STATIONARY = "stationary"  # Неподвижный, [статичный, фиксированный]
     VERTICAL = "vertical"  # Вертикальный
     #
-    ONE = "one",  # Первый
-    TWO = "two",  # Второй
-    THREE = "three",  # Третий
-    FOUR = "four",  # Четвёртый
-    FIVE = "five",  # Пятый
-    SIX = "six",  # Шестой
-    SEVEN = "seven",  # Седьмой
-    EIGHT = "eight",  # Восьмой
-    NINE = "nine",  # Девятый
-    TEN = "ten",  # Десятый
+    ONE = "one"  # Первый
+    TWO = "two"  # Второй
+    THREE = "three"  # Третий
+    FOUR = "four"  # Четвёртый
+    FIVE = "five"  # Пятый
+    SIX = "six"  # Шестой
+    SEVEN = "seven"  # Седьмой
+    EIGHT = "eight"  # Восьмой
+    NINE = "nine"  # Девятый
+    TEN = "ten"  # Десятый
     #
     AMERICANO = "americano"  # Американо
     CAPPUCCINO = "cappuccino"  # Капучино

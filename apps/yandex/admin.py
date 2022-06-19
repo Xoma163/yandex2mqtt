@@ -8,10 +8,10 @@ class CapabilityAdmin(admin.ModelAdmin):
     readonly_fields = ('parameters',)
     fieldsets = (
         ('Общее', {
-            'fields': ('name', 'author', 'type', 'retrievable', 'reportable', 'value', 'parameters'),
+            'fields': ('name', 'type', 'retrievable', 'reportable', 'value', 'parameters'),
         }),
         ('mqtt', {
-            'fields': (),
+            'fields': ('mqtt_config', 'command_topic', 'state_topic'),
         }),
         ('ColorSetting', {
             'fields': ('color_model', 'temp_k_min', 'temp_k_max'),
@@ -34,9 +34,10 @@ class CapabilityAdmin(admin.ModelAdmin):
 
     )
 
-    list_filter = (
-        'author',
-    )
+
+@admin.register(CapabilityMode)
+class CapabilityModeAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(Room)
@@ -46,4 +47,6 @@ class RoomAdmin(admin.ModelAdmin):
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
-    pass
+    list_filter = (
+        'author',
+    )

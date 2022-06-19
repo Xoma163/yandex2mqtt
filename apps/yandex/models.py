@@ -1,10 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-from .consts import  Status, ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE
+from .consts import Status, ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE
 from .model_consts import *
+from ..mqtt.models import MqttConfig
 
 
 class Room(models.Model):
@@ -18,41 +18,58 @@ class Room(models.Model):
         verbose_name_plural = "Комнаты"
 
 
-class Capability(models.Model):
-    # @formatter:off
+class CapabilityMode(models.Model):
+    mode = models.CharField("mode", max_length=50, choices=ModeChoices)
 
+    def __str__(self):
+        return self.mode
+
+    class Meta:
+        verbose_name = "Функция(Mode) возможности"
+        verbose_name_plural = "Функции(Mode) возможности"
+
+
+class Capability(models.Model):
     # Общее
-    author = models.ForeignKey(get_user_model(), verbose_name="Автор", on_delete=models.CASCADE)
     name = models.CharField("Название", max_length=100, blank=True)
     type = models.CharField("Тип устройства", max_length=100, choices=CapabilityTypeChoices)
     parameters = models.JSONField("Параметры", default=dict, editable=False)
-    retrievable = models.BooleanField("Включенное оповещение", default=True, help_text="Признак включенного оповещения об изменении состояния умения при помощи сервиса уведомлений")
-    reportable = models.BooleanField("Доступен ли запрос состояния", default=False, help_text="Доступен ли для данного умения устройства запрос состояния")
+    retrievable = models.BooleanField("Включенное оповещение", default=True,
+                                      help_text="Признак включенного оповещения об изменении состояния умения при помощи сервиса уведомлений")
+    reportable = models.BooleanField("Доступен ли запрос состояния", default=False,
+                                     help_text="Доступен ли для данного умения устройства запрос состояния")
     value = models.JSONField(default=dict, help_text="Изначальное значение", blank=True)
     # mqtt
-
+    mqtt_config = models.ForeignKey(MqttConfig, verbose_name="Конфигурация MQTT", on_delete=models.SET_NULL, null=True)
+    command_topic = models.CharField("Топик для команд", max_length=100)
+    state_topic = models.CharField("Топик для состояния", max_length=100)
     # ColorSetting
     color_model = models.CharField("Цветовая модель", max_length=10, choices=ColorModelChoices, blank=True)
-    temp_k_min = models.PositiveIntegerField("Минимальная температура света", null=True,blank=True, validators=[MinValueValidator(2000), MaxValueValidator(9000)])
-    temp_k_max = models.PositiveIntegerField("Максимальная температура света", null=True, blank=True, validators=[MinValueValidator(2000), MaxValueValidator(9000)])
+    temp_k_min = models.PositiveIntegerField("Минимальная температура света", null=True, blank=True,
+                                             validators=[MinValueValidator(2000), MaxValueValidator(9000)])
+    temp_k_max = models.PositiveIntegerField("Максимальная температура света", null=True, blank=True,
+                                             validators=[MinValueValidator(2000), MaxValueValidator(9000)])
     # Mode
     mode_instance = models.CharField("instance", max_length=50, choices=ModeInstanceChoices, blank=True)
-    modes = ArrayField(models.CharField("mode", max_length=50, choices=ModeChoices), blank=True)
+    # modes = ArrayField(models.CharField("mode", max_length=50, choices=ModeChoices), blank=True)
+    modes = models.ManyToManyField(CapabilityMode, blank=True)
     # OnOff
-    split = models.BooleanField("split", blank=True, help_text="За включение/выключение устройства у провайдера отвечают разные команды")
+    split = models.BooleanField("split", blank=True,
+                                help_text="За включение/выключение устройства у провайдера отвечают разные команды")
     # Range
     range_instance = models.CharField("instance", max_length=50, choices=RangeInstanceChoices, blank=True)
     unit = models.CharField("Единица измерения", max_length=50, choices=RangeUnitChoices, blank=True)
-    random_access = models.BooleanField("Произвольные значения", blank=True, help_text="Если эта возможность выключена, пользователю будет доступно только последовательное изменение значений — в большую или меньшую сторону. Например, изменение громкости телевизора при работе через ИК пульт.")
-    range_min = models.PositiveIntegerField("Минимальное значение", null=True, blank=True,  validators=[MinValueValidator(1), MaxValueValidator(100)])
-    range_max = models.PositiveIntegerField("Максимальное значение", null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)])
+    random_access = models.BooleanField("Произвольные значения", blank=True,
+                                        help_text="Если эта возможность выключена, пользователю будет доступно только последовательное изменение значений — в большую или меньшую сторону. Например, изменение громкости телевизора при работе через ИК пульт.")
+    range_min = models.PositiveIntegerField("Минимальное значение", null=True, blank=True,
+                                            validators=[MinValueValidator(1), MaxValueValidator(100)])
+    range_max = models.PositiveIntegerField("Максимальное значение", null=True, blank=True,
+                                            validators=[MinValueValidator(1), MaxValueValidator(100)])
     range_precision = models.PositiveIntegerField("Шаг", blank=True, null=True)
     # Toggle
     toggle_instance = models.CharField("instance", max_length=50, choices=ToggleInstanceChoices, blank=True)
     # VideoStream
     protocol = models.CharField("Протокол", max_length=50, choices=ProtocolChoices, blank=True)
-
-    # @formatter:on
 
     def save(self, **kwargs):
         self.parameters = {}
@@ -88,10 +105,12 @@ class Capability(models.Model):
                         'min': self.temp_k_min,
                         'max': self.temp_k_max
                     }}
+
             elif self.temp_k_min:
                 self.parameters['temperature_k'] = self.temp_k_min
             elif self.temp_k_max:
                 self.parameters['temperature_k'] = self.temp_k_max
+            self.value = 2000
 
     def init_mode(self):
         if not self.mode_instance and not self.modes:
@@ -99,6 +118,7 @@ class Capability(models.Model):
 
         self.parameters["instance"] = self.mode_instance
         self.parameters["modes"] = self.modes
+        self.value = self.modes.first().mode
 
     def init_on_off(self):
         if not self.retrievable:
@@ -106,6 +126,7 @@ class Capability(models.Model):
                 self.parameters = {
                     "split": self.split
                 }
+        self.value = False
 
     def init_range(self):
         if not self.range_instance:
@@ -134,18 +155,25 @@ class Capability(models.Model):
         if self.range_precision:
             self.parameters["range"]['range_precision'] = self.range_precision
 
+        self.value = 0
+
     def init_toggle(self):
         if not self.toggle_instance:
             raise RuntimeError(f"toggle_instance must be provided for type {self.type}")
         self.parameters["instance"] = self.toggle_instance
+        self.value = False
+
 
     def init_video_stream(self):
+        self.retrievable = False
+        self.reportable = False
         if not self.protocol:
             raise RuntimeError(f"protocol must be provided for type {self.type}")
 
         self.parameters = {
             "protocols": [self.protocol]
         }
+        self.value = ""
 
     def get_for_device_list(self):
         return {
@@ -156,6 +184,7 @@ class Capability(models.Model):
         }
 
     def get_state(self):
+        # ToDo: hsv,
         return {
             "type": self.type,
             "state": {
@@ -199,8 +228,10 @@ class Capability(models.Model):
 
 
 class Device(models.Model):
+    author = models.ForeignKey(get_user_model(), verbose_name="Автор", on_delete=models.CASCADE, related_name="devices")
     name = models.CharField("Название", max_length=100)
-    type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50, help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
+    type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50,
+                            help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
     room = models.ForeignKey(Room, on_delete=models.SET_NULL, verbose_name="Комната", null=True, blank=True)
     description = models.TextField("Описание", max_length=100, blank=True)
     custom_data = models.JSONField(default=dict, verbose_name="Кастомные данные", blank=True)
@@ -212,3 +243,21 @@ class Device(models.Model):
     class Meta:
         verbose_name = "Устройство"
         verbose_name_plural = "Устройства"
+
+    def get_json(self):
+        data = {
+            "id": str(self.pk),
+            "name": self.name,
+            # "room": "Туалет",
+            "type": self.type,
+        }
+        if self.room:
+            data['room'] = self.room.name
+        if self.description:
+            data['description'] = self.description
+        if self.custom_data:
+            data['custom_data'] = self.custom_data
+        if self.capabilities:
+            data['capabilities'] = [x.get_for_device_list() for x in self.capabilities.all()]
+
+        return data
