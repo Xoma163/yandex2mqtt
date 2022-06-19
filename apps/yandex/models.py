@@ -36,7 +36,7 @@ class Capability(models.Model):
     parameters = models.JSONField("Параметры", default=dict, editable=False)
     retrievable = models.BooleanField("Включенное оповещение", default=True,
                                       help_text="Признак включенного оповещения об изменении состояния умения при помощи сервиса уведомлений")
-    reportable = models.BooleanField("Доступен ли запрос состояния", default=False,
+    reportable = models.BooleanField("Доступен ли запрос состояния", default=True,
                                      help_text="Доступен ли для данного умения устройства запрос состояния")
     state = models.JSONField(default=list, help_text="Стейт", blank=True)
     # mqtt
@@ -61,9 +61,9 @@ class Capability(models.Model):
     random_access = models.BooleanField("Произвольные значения", blank=True,
                                         help_text="Если эта возможность выключена, пользователю будет доступно только последовательное изменение значений — в большую или меньшую сторону. Например, изменение громкости телевизора при работе через ИК пульт.")
     range_min = models.PositiveIntegerField("Минимальное значение", null=True, blank=True,
-                                            validators=[MinValueValidator(1), MaxValueValidator(100)])
+                                            validators=[MinValueValidator(0), MaxValueValidator(100)])
     range_max = models.PositiveIntegerField("Максимальное значение", null=True, blank=True,
-                                            validators=[MinValueValidator(1), MaxValueValidator(100)])
+                                            validators=[MinValueValidator(0), MaxValueValidator(100)])
     range_precision = models.PositiveIntegerField("Шаг", blank=True, null=True)
     # Toggle
     toggle_instance = models.CharField("instance", max_length=50, choices=ToggleInstanceChoices, blank=True)
@@ -71,7 +71,6 @@ class Capability(models.Model):
     protocol = models.CharField("Протокол", max_length=50, choices=ProtocolChoices, blank=True)
 
     def save(self, **kwargs):
-        self.parameters = {}
         constructor_map = {
             CapabilityType.COLOR_SETTING.value: self.init_color_settings,
             CapabilityType.MODE.value: self.init_mode,
@@ -90,7 +89,7 @@ class Capability(models.Model):
         if self.color_model:
             self.parameters["color_model"] = self.color_model  # hsv/rgb
             if self.color_model == ColorModel.HSV.value:
-                if not self.pk:
+                if not self.state:
                     self.state.append({
                         "instance": "hsv",
                         "value": {
@@ -100,7 +99,7 @@ class Capability(models.Model):
                         }
                     })
             elif self.color_model == ColorModel.RGB.value:
-                if not self.pk:
+                if not self.state:
                     self.state.append({
                         "instance": "rgb",
                         "value": 0
@@ -113,24 +112,26 @@ class Capability(models.Model):
             if self.temp_k_max < self.temp_k_min:
                 raise RuntimeError("temp_k_max must be higher than temp_k_min")
             self.parameters['temperature_k'] = {"min": self.temp_k_min, "max": self.temp_k_max}
-            if not self.pk:
+            if not self.state:
                 self.state.append({
                     "instance": "temperature_k",
                     "value": self.temp_k_min or self.temp_k_max
                 })
 
-    def init_mode(self):
-        super().save()
-        if not self.mode_instance and not self.modes:
+    def init_mode_post(self):
+        if self.modes.count() == 0:
             raise RuntimeError(f"mode_instance and modes must be provided for type {self.type}")
-
-        self.parameters["instance"] = self.mode_instance
         self.parameters["modes"] = [{"value": x.mode} for x in self.modes.all()]
-        if not self.pk:
+        if not self.state:
             self.state.append({
                 "instance": self.mode_instance,
                 "value": self.parameters['modes'][0]['value']
             })
+
+    def init_mode(self):
+        if not self.mode_instance:
+            raise RuntimeError(f"mode_instance and modes must be provided for type {self.type}")
+        self.parameters["instance"] = self.mode_instance
 
     def init_on_off(self):
         if not self.retrievable:
@@ -138,7 +139,7 @@ class Capability(models.Model):
                 self.parameters = {
                     "split": self.split
                 }
-        if not self.pk:
+        if not self.state:
             self.state.append({
                 "instance": "on",
                 "value": False
@@ -156,32 +157,34 @@ class Capability(models.Model):
                 raise RuntimeError(f"unit must be in {allowed_units_str} for instance {self.range_instance}")
             self.parameters["unit"] = self.unit
 
-        if self.random_access:
+        if self.random_access is not None:
             self.parameters["random_access"] = self.random_access
 
         if self.range_min or self.range_max or self.range_precision:
-            self.parameters["range"] = {}
+            if self.range_min and self.range_max is None or self.range_max and self.range_min is None:
+                raise RuntimeError("range_min and range_max must be provided together")
+            if self.range_min > self.range_max:
+                raise RuntimeError("range_min must be lower that range_max")
 
-        if self.range_min:
-            self.parameters["range"]['range_min'] = self.range_min
+            self.parameters["range"] = {'min': self.range_min, 'max': self.range_max}
 
-        if self.range_max:
-            self.parameters["range"]['range_max'] = self.range_max
+            if self.range_precision is not None:
+                if self.range_min is None or self.range_max is None:
+                    raise RuntimeError("range_precision, range_min and range_max must be provided together")
 
-        if self.range_precision:
-            self.parameters["range"]['range_precision'] = self.range_precision
+                self.parameters["range"]['precision'] = self.range_precision
 
-        if not self.pk:
+        if not self.state:
             self.state.append({
                 "instance": self.range_instance,
-                "value": 0
+                "value": self.range_min if self.range_min else 0
             })
 
     def init_toggle(self):
         if not self.toggle_instance:
             raise RuntimeError(f"toggle_instance must be provided for type {self.type}")
         self.parameters["instance"] = self.toggle_instance
-        if not self.pk:
+        if not self.state:
             self.state.append({
                 "instance": self.toggle_instance,
                 "value": False
@@ -196,14 +199,19 @@ class Capability(models.Model):
         self.parameters = {
             "protocols": [self.protocol]
         }
-        if not self.pk:
+        if not self.state:
             self.state.append({
                 "instance": self.protocol,
                 "value": ""
             })
 
     def get_for_device_list(self):
-        return
+        return {
+            'type': self.type,
+            'retrievable': self.retrievable,
+            'reportable': self.reportable,
+            'parameters': self.parameters,
+        }
 
     def set_state(self, new_state):
         # ToDo: mqtt

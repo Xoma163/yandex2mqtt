@@ -1,11 +1,12 @@
 from django.contrib import admin
+from django.contrib.admin import ModelAdmin
 from .models import *
 
 
 @admin.register(Capability)
-class CapabilityAdmin(admin.ModelAdmin):
+class CapabilityAdmin(ModelAdmin):
     list_display = ('__str__', 'type')
-    readonly_fields = ('state','parameters',)
+    readonly_fields = ('state', 'parameters',)
     fieldsets = (
         ('Общее', {
             'fields': ('name', 'type', 'retrievable', 'reportable', 'state', 'parameters'),
@@ -31,22 +32,33 @@ class CapabilityAdmin(admin.ModelAdmin):
         ('VideoStream', {
             'fields': ('protocol',),
         })
-
     )
 
+    # POST SAVE TRIGGER
+    # ToDo: Костыль для m2m
+    def save_related(self, request, form, formsets, change):
+        # super(ModelAdmin, self).save_related(request, form, formsets, change)
+        form.save_m2m()
+        for formset in formsets:
+            self.save_formset(request, form, formset, change=change)
+        # end super()
+
+        if form.instance.type == CapabilityType.MODE.value:
+            form.instance.init_mode_post()
+            form.instance.save()
 
 @admin.register(CapabilityMode)
-class CapabilityModeAdmin(admin.ModelAdmin):
+class CapabilityModeAdmin(ModelAdmin):
     pass
 
 
 @admin.register(Room)
-class RoomAdmin(admin.ModelAdmin):
+class RoomAdmin(ModelAdmin):
     pass
 
 
 @admin.register(Device)
-class DeviceAdmin(admin.ModelAdmin):
+class DeviceAdmin(ModelAdmin):
     list_filter = (
         'author',
     )

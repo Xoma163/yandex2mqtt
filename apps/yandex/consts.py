@@ -202,10 +202,10 @@ class ToggleInstance(Enum):
 
 
 ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE = {
-    RangeInstance.BRIGHTNESS: [RangeUnit.PERCENT],
-    RangeInstance.CHANNEL: [],
-    RangeInstance.HUMIDITY: [RangeUnit.PERCENT],
-    RangeInstance.OPEN: [RangeUnit.PERCENT],
-    RangeInstance.TEMPERATURE: [RangeUnit.KELVIN, RangeUnit.CELSIUS],
-    RangeInstance.VOLUME: [RangeUnit.PERCENT]
+    RangeInstance.BRIGHTNESS.value: [RangeUnit.PERCENT.value],
+    RangeInstance.CHANNEL.value: [],
+    RangeInstance.HUMIDITY.value: [RangeUnit.PERCENT.value],
+    RangeInstance.OPEN.value: [RangeUnit.PERCENT.value],
+    RangeInstance.TEMPERATURE.value: [RangeUnit.KELVIN.value, RangeUnit.CELSIUS.value],
+    RangeInstance.VOLUME.value: [RangeUnit.PERCENT.value]
 }
