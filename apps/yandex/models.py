@@ -4,10 +4,10 @@ import requests
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from oauth2_provider.models import AccessToken
 
 from .consts import Status, ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE
 from .model_consts import *
+from ..main.models import UUIDModel
 from ..mqtt.models import MqttConfig
 
 
@@ -18,23 +18,46 @@ class Room(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = "Комната"
-        verbose_name_plural = "Комнаты"
+        verbose_name = "комната"
+        verbose_name_plural = "комнаты"
 
 
+# ToDo: array field?
 class CapabilityMode(models.Model):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/mode-instance-modes.html
+    """
     mode = models.CharField("mode", max_length=50, choices=ModeChoices)
 
     def __str__(self):
         return self.get_mode_display()
 
     class Meta:
-        verbose_name = "Функция(Mode) возможности"
-        verbose_name_plural = "Функции(Mode) возможности"
+        verbose_name = "функция(Mode) умения"
+        verbose_name_plural = "функции(Mode) умения"
 
 
-class Device(models.Model):
+class YandexDialog(models.Model):
+    name = models.CharField("Название", max_length=100)
+    oauth_token = models.CharField("OAuth токен", max_length=40,
+                                   help_text="https://yandex.ru/dev/dialogs/smart-home/doc/reference-alerts/resources-alerts.html#resources-alerts__oauth")
+    skill_id = models.UUIDField("ID навыка в яндексе",
+                                help_text="https://dialogs.yandex.ru/developer/skills/{skill_id}")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "яндекс диалог"
+        verbose_name_plural = "яндекс диалоги"
+
+
+class Device(UUIDModel, models.Model):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html
+    """
     author = models.ForeignKey(get_user_model(), verbose_name="Автор", on_delete=models.CASCADE, related_name="devices")
+    yd = models.ForeignKey(YandexDialog, verbose_name="Яндекс диалог (навык)", on_delete=models.CASCADE)
     name = models.CharField("Название", max_length=100)
     type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50,
                             help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
@@ -46,8 +69,8 @@ class Device(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = "Устройство"
-        verbose_name_plural = "Устройства"
+        verbose_name = "устройство"
+        verbose_name_plural = "устройства"
 
     # yandex things
     def get_for_device_list(self):
@@ -93,6 +116,9 @@ class Device(models.Model):
 
 
 class Capability(models.Model):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/capability-types.html
+    """
     # Общее
     name = models.CharField("Название", max_length=100, blank=True)
     type = models.CharField("Тип устройства", max_length=100, choices=CapabilityTypeChoices)
@@ -309,9 +335,38 @@ class Capability(models.Model):
 
         return data
 
+    def update_yandex_state(self):
+        url = f"https://dialogs.yandex.net/api/v1/skills/{self.device.yd.skill_id}/callback/state"
+        headers = {
+            "Authorization": f"OAuth {self.device.yd.oauth_token}",
+            "Content-Type": "application/json"
+        }
+        capabilities = [{"type": self.type, "state": state} for state in self.state]
+        data = {
+            "ts": datetime.datetime.now().timestamp(),
+            "payload": {
+                "user_id": str(self.device.author.pk),
+                "devices": [
+                    {
+                        "id": str(self.device.pk),
+                        "capabilities": capabilities
+                    }
+                ]
+            }
+        }
+        res = requests.post(url, json=data, headers=headers)
+        if not res.ok:
+            # ToDo: logging
+            pass
+        return res
+
+    def update_mqtt_state(self):
+        # ToDo:
+        pass
+
     def __str__(self):
         return self.name if self.name else str(self.pk)
 
     class Meta:
-        verbose_name = "Возможность"
-        verbose_name_plural = "Возможности"
+        verbose_name = "умение"
+        verbose_name_plural = "умения"

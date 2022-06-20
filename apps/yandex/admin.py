@@ -6,7 +6,10 @@ from .models import *
 @admin.register(Capability)
 class CapabilityAdmin(ModelAdmin):
     list_display = ('__str__', 'type')
-    readonly_fields = ('state', 'parameters',)
+    readonly_fields = ('parameters',)
+    list_filter = ('device__author', 'device__yd', 'device__room', 'device', 'type')
+
+    search_fields = ('name',)
     fieldsets = (
         ('Общее', {
             'fields': ('name', 'type', 'device', 'retrievable', 'reportable', 'state', 'parameters'),
@@ -47,8 +50,14 @@ class CapabilityAdmin(ModelAdmin):
             form.instance.init_mode_post()
             form.instance.save()
 
+
 @admin.register(CapabilityMode)
 class CapabilityModeAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(YandexDialog)
+class YandexDialogModeAdmin(ModelAdmin):
     pass
 
 
@@ -59,6 +68,4 @@ class RoomAdmin(ModelAdmin):
 
 @admin.register(Device)
 class DeviceAdmin(ModelAdmin):
-    list_filter = (
-        'author',
-    )
+    list_filter = ('author', 'yd', 'room', 'type')

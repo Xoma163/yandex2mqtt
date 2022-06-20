@@ -220,3 +220,4 @@ AUTHENTICATION_BACKENDS = [
     'oauth2_provider.backends.OAuth2Backend',
     'django.contrib.auth.backends.ModelBackend'
 ]
+AUTH_USER_MODEL = 'main.User'

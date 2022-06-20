@@ -3,10 +3,6 @@ import json
 from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.views import View
-
-from django.views.decorators.csrf import csrf_exempt
-from oauth2_provider.models import AccessToken
-
 from apps.main.mixins import CSRFExemptMixin
 
 
@@ -23,7 +19,7 @@ class IndexView(View):
 
 class UserDevicesView(View):
     def get(self, request):
-        if not request.body:
+        if request.user.is_anonymous:
             return HttpResponse(status=200)
 
         devices = request.user.devices.all()
@@ -42,7 +38,8 @@ class UserDevicesView(View):
 
 class UserDevicesActionView(CSRFExemptMixin, View):
     def post(self, request):
-        if not request.body:
+        # AccessToken.objects.get(token=request.headers['authorization'].replace("Bearer ",""))
+        if request.user.is_anonymous:
             return HttpResponse(status=200)
         body = json.loads(request.body)
         devices = body['payload']['devices']
@@ -59,7 +56,7 @@ class UserDevicesActionView(CSRFExemptMixin, View):
 
 class UserDevicesQueryView(CSRFExemptMixin, View):
     def post(self, request):
-        if not request.body:
+        if request.user.is_anonymous:
             return HttpResponse(status=200)
         body = json.loads(request.body)
         devices_pk = [x['id'] for x in body['devices']]
