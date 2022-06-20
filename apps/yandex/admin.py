@@ -6,9 +6,8 @@ from .models import *
 @admin.register(Capability)
 class CapabilityAdmin(ModelAdmin):
     list_display = ('__str__', 'type')
-    readonly_fields = ('parameters',)
+    readonly_fields = ('state', 'parameters',)
     list_filter = ('device__author', 'device__yd', 'device__room', 'device', 'type')
-
     search_fields = ('name',)
     fieldsets = (
         ('Общее', {
@@ -37,23 +36,28 @@ class CapabilityAdmin(ModelAdmin):
         })
     )
 
-    # POST SAVE TRIGGER
-    # ToDo: Костыль для m2m
-    def save_related(self, request, form, formsets, change):
-        # super(ModelAdmin, self).save_related(request, form, formsets, change)
-        form.save_m2m()
-        for formset in formsets:
-            self.save_formset(request, form, formset, change=change)
-        # end super()
 
-        if form.instance.type == CapabilityType.MODE.value:
-            form.instance.init_mode_post()
-            form.instance.save()
+@admin.register(Property)
+class PropertyAdmin(ModelAdmin):
+    list_display = ('__str__', 'type')
+    readonly_fields = ('state', 'parameters',)
+    list_filter = ('device__author', 'device__yd', 'device__room', 'device', 'type')
 
-
-@admin.register(CapabilityMode)
-class CapabilityModeAdmin(ModelAdmin):
-    pass
+    search_fields = ('name',)
+    fieldsets = (
+        ('Общее', {
+            'fields': ('name', 'type', 'device', 'retrievable', 'reportable', 'state', 'parameters'),
+        }),
+        ('mqtt', {
+            'fields': ('mqtt_config', 'state_topic'),
+        }),
+        ('Float', {
+            'fields': ('float_instance', 'unit'),
+        }),
+        ('Event', {
+            'fields': ('event_instance', 'events'),
+        })
+    )
 
 
 @admin.register(YandexDialog)

@@ -1,15 +1,15 @@
 import paho.mqtt.client as mqtt
 import json
 
-from yandex2mqtt.settings import MQTT_CONFIG
+from apps.mqtt.models import MqttConfig
 
 
 class MqttClient:
-    def __init__(self):
+    def __init__(self, config: MqttConfig):
         self.client = mqtt.Client()
         self.client.on_connect = self.on_connect
-        self.client.username_pw_set(MQTT_CONFIG['login'], MQTT_CONFIG['password'])
-        self.client.connect(MQTT_CONFIG['url'], MQTT_CONFIG['port'], 60)
+        self.client.username_pw_set(config.login, config.password)
+        self.client.connect(config.url, config.port, 60)
 
     def loop(self):
         self.client.loop_forever()

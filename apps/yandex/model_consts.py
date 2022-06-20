@@ -1,7 +1,5 @@
-from django.db.models import TextChoices
-
 from apps.yandex.consts import DeviceType, CapabilityType, RangeInstance, RangeUnit, ModeInstance, Mode, ToggleInstance, \
-    ColorModel, Protocol
+    ColorModel, Protocol, PropertyType, FloatInstance, EventInstance, Event, FloatUnit
 
 ColorModelChoices = [
     (ColorModel.RGB.value, "RGB"),
@@ -12,7 +10,6 @@ ProtocolChoices = [
     (Protocol.HLS.value, "HLS"),
     (Protocol.PROGRESSIVE_MP4.value, "PROGRESSIVE_MP4"),
 ]
-
 
 DeviceTypeChoices = [
     (DeviceType.LIGHT.value, 'LIGHT. Устройство, которое имеет управляемые светящиеся элементы'),
@@ -38,7 +35,7 @@ DeviceTypeChoices = [
     (DeviceType.IRON.value, 'IRON. Устройство, которое выполняет функции утюга'),
     (DeviceType.SENSOR.value, 'SENSOR. Устройство, которое передает данные со свойств'),
     (DeviceType.OTHER.value, 'OTHER. Остальные устройства, не подходящие под типы выше')
-              ]
+]
 
 CapabilityTypeChoices = [
     (CapabilityType.ON_OFF.value, "ON_OFF. Удаленное включение и выключение устройства"),
@@ -159,4 +156,72 @@ ToggleInstanceChoices = [
     (ToggleInstance.MUTE.value, "MUTE. Выключение звука"),
     (ToggleInstance.OSCILLATION.value, "OSCILLATION. Вращение"),
     (ToggleInstance.PAUSE.value, "PAUSE. Пауза"),
+]
+
+PropertyTypeChoices = [
+    (PropertyType.FLOAT.value, "Float. Число"),
+    (PropertyType.EVENT.value, "Event. Событие")
+]
+
+FloatInstanceChoices = [
+    (FloatInstance.AMPERAGE.value, "Отображение текущего потребления тока"),
+    (FloatInstance.BATTERY_LEVEL.value, "Отображение уровня заряда аккумулятора"),
+    (FloatInstance.CO2_LEVEL.value, "Отображение показаний уровня углекислого газа"),
+    (FloatInstance.HUMIDITY.value, "Отображение показаний влажности"),
+    (FloatInstance.ILLUMINATION.value, "Отображение уровня освещенности"),
+    (FloatInstance.PM1_DENSITY.value, "Отображение уровня загрязнения воздуха частицами PM1"),
+    (FloatInstance.PM2_5_DENSITY.value, "Отображение уровня загрязнения воздуха частицами PM2.5"),
+    (FloatInstance.PM10_DENSITY.value, "Отображение уровня загрязнения воздуха частицами PM10"),
+    (FloatInstance.POWER.value, "Отображение текущей потребляемой мощности"),
+    (FloatInstance.PRESSURE.value, "Отображение давления"),
+    (FloatInstance.TEMPERATURE.value, "Отображение показаний температуры"),
+    (FloatInstance.TVOC.value, "Отображение уровня загрязнения воздуха органическими веществами"),
+    (FloatInstance.VOLTAGE.value, "Отображение текущего напряжения"),
+    (FloatInstance.WATER_LEVEL.value, "Отображение показаний уровня воды")
+]
+
+FloatUnitChoices = [
+    (FloatUnit.AMPERE.value, "Ампер"),
+    (FloatUnit.PERCENT.value, "Процент"),
+    (FloatUnit.PPM.value, "PPM (parts per million)"),
+    (FloatUnit.LUX.value, "Люкс"),
+    (FloatUnit.MCG_M3.value, "мкг/м3"),
+    (FloatUnit.WATT.value, "Ватт"),
+    (FloatUnit.ATM.value, "Атмосфера"),
+    (FloatUnit.PASCAL.value, " Паскаль"),
+    (FloatUnit.BAR.value, "Бар"),
+    (FloatUnit.MMHG.value, "мм. рт. ст."),
+    (FloatUnit.CELSIUS.value, "Цельсий"),
+    (FloatUnit.KELVIN.value, "Кельвин"),
+    (FloatUnit.VOLT.value, "Вольт"),
+]
+
+EventInstanceChoices = [
+    (EventInstance.VIBRATION.value, "Отображение событий физического воздействия: вибрация, падение, переворачивание"),
+    (EventInstance.OPEN.value, "Отображение событий открытия/закрытия дверей, окон и т. п"),
+    (EventInstance.BUTTON.value, "Отображение событий нажатия кнопки"),
+    (EventInstance.MOTION.value, "Отображение событий, связанных с наличием движения в области действия датчика"),
+    (EventInstance.SMOKE.value, "Отображение событий наличия дыма в помещении"),
+    (EventInstance.GAS.value, "Отображение событий наличия газа в помещении"),
+    (EventInstance.BATTERY_LEVEL.value, "Отображение событий заряда батареи"),
+    (EventInstance.WATER_LEVEL.value, "Отображение событий, связанных с уровнем воды"),
+    (EventInstance.WATER_LEAR.value, "Отображение событий протечки воды"),
+]
+
+EventChoices = [
+    (Event.TILT.value, "Переворачивание"),
+    (Event.FALL.value, "Падение"),
+    (Event.VIBRATION.value, "Вибрация"),
+    (Event.OPENED.value, "Открыто"),
+    (Event.CLOSED.value, "Закрыто"),
+    (Event.CLICK.value, "Одиночное нажатие"),
+    (Event.DOUBLE_CLICK.value, "Двойное нажатие"),
+    (Event.LONG_PRESS.value, "Долгое нажатие"),
+    (Event.DETECTED.value, "Обнаружено"),
+    (Event.NOT_DETECTED.value, "Не обнаружено"),
+    (Event.HIGH.value, "Высокий уровень"),
+    (Event.LOW.value, "Низкий"),
+    (Event.NORMAL.value, "Нормальный"),
+    (Event.DRY.value, "Нет протечки"),
+    (Event.LEAK.value, "Протечка"),
 ]

@@ -6,20 +6,7 @@ class Status(Enum):
     ERROR = "ERROR"
 
 
-class ColorModel(Enum):
-    """
-    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/color_setting.html
-    """
-    RGB = "rgb"
-    HSV = "hsv"
-
-
-class Protocol(Enum):
-    """
-    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/video_stream.html
-    """
-    HLS = "hls"
-    PROGRESSIVE_MP4 = "progressive_mp4"
+# ---------- DEVICE ---------- #
 
 
 class DeviceType(Enum):
@@ -49,6 +36,9 @@ class DeviceType(Enum):
     IRON = "devices.types.iron"  # Устройство, которое выполняет функции утюга
     SENSOR = "devices.types.sensor"  # Устройство, которое передает данные со свойств
     OTHER = "devices.types.other"  # Остальные устройства, не подходящие под типы выше
+
+
+# ---------- CAPABILITY ---------- #
 
 
 class CapabilityType(Enum):
@@ -209,3 +199,140 @@ ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE = {
     RangeInstance.TEMPERATURE.value: [RangeUnit.KELVIN.value, RangeUnit.CELSIUS.value],
     RangeInstance.VOLUME.value: [RangeUnit.PERCENT.value]
 }
+
+
+class ColorModel(Enum):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/color_setting.html
+    """
+    RGB = "rgb"
+    HSV = "hsv"
+
+
+class Protocol(Enum):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/video_stream.html
+    """
+    HLS = "hls"
+    PROGRESSIVE_MP4 = "progressive_mp4"
+
+
+# ---------- PROPERTY ---------- #
+
+
+class PropertyType(Enum):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/properties-types.html
+    """
+    FLOAT = "devices.properties.float"  # Число
+    EVENT = "devices.properties.event"  # Событие
+
+
+class FloatInstance(Enum):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/float-instance.html
+    """
+    AMPERAGE = "amperage"  # Отображение текущего потребления тока.
+    BATTERY_LEVEL = "battery_level"  # Отображение уровня заряда аккумулятора.
+    CO2_LEVEL = "co2_level"  # Отображение показаний уровня углекислого газа.
+    HUMIDITY = "humidity"  # Отображение показаний влажности.
+    ILLUMINATION = "illumination"  # Отображение уровня освещенности.
+    PM1_DENSITY = "pm1_density"  # Отображение уровня загрязнения воздуха частицами PM1.
+    PM2_5_DENSITY = "pm2.5_density"  # Отображение уровня загрязнения воздуха частицами PM2.5.
+    PM10_DENSITY = "pm10_density"  # Отображение уровня загрязнения воздуха частицами PM10.
+    POWER = "power"  # Отображение текущей потребляемой мощности.
+    PRESSURE = "pressure"  # Отображение давления.
+    TEMPERATURE = "temperature"  # Отображение показаний температуры.
+    TVOC = "tvoc"  # Отображение уровня загрязнения воздуха органическими веществами.
+    VOLTAGE = "voltage"  # Отображение текущего напряжения.
+    WATER_LEVEL = "water_level"  # Отображение показаний уровня воды.
+
+
+class FloatUnit(Enum):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/float-instance.html
+    """
+
+    AMPERE = "unit.ampere"  # Ампер
+    PERCENT = "unit.percent"  # Процент
+    PPM = "unit.ppm"  # PPM (parts per million)
+    LUX = "unit.illumination.lux"  # Люкс
+    MCG_M3 = "unit.density.mcg_m3"  # мкг/м3
+    WATT = "unit.watt"  # Ватт
+    ATM = "unit.pressure.atm"  # Атмосфера
+    PASCAL = "unit.pressure.pascal"  # Паскаль
+    BAR = "unit.pressure.bar"  # Бар
+    MMHG = "unit.pressure.mmhg"  # мм. рт. ст.
+    CELSIUS = "unit.temperature.celsius"  # Цельсий
+    KELVIN = "unit.temperature.kelvin"  # Кельвин
+    VOLT = "unit.volt"  # Вольт
+
+
+ALLOWED_UNITS_BY_FLOAT_INSTANCE = {
+    FloatInstance.AMPERAGE.value: [FloatUnit.AMPERE.value],
+    FloatInstance.BATTERY_LEVEL.value: [FloatUnit.PERCENT.value],
+    FloatInstance.CO2_LEVEL.value: [FloatUnit.PPM.value],
+    FloatInstance.HUMIDITY.value: [FloatUnit.PERCENT.value],
+    FloatInstance.ILLUMINATION.value: [FloatUnit.LUX.value],
+    FloatInstance.PM1_DENSITY.value: [FloatUnit.MCG_M3.value],
+    FloatInstance.PM2_5_DENSITY.value: [FloatUnit.MCG_M3.value],
+    FloatInstance.PM10_DENSITY.value: [FloatUnit.MCG_M3.value],
+    FloatInstance.POWER.value: [FloatUnit.WATT.value],
+    FloatInstance.PRESSURE.value: [FloatUnit.ATM.value, FloatUnit.PASCAL.value, FloatUnit.BAR.value, FloatUnit.MMHG.value],
+    FloatInstance.TEMPERATURE.value: [FloatUnit.CELSIUS.value, FloatUnit.KELVIN.value],
+    FloatInstance.TVOC.value: [FloatUnit.MCG_M3.value],
+    FloatInstance.VOLTAGE.value: [FloatUnit.VOLT.value],
+    FloatInstance.WATER_LEVEL.value: [FloatUnit.PERCENT.value],
+}
+
+
+class EventInstance(Enum):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/event-instance.html
+    """
+
+    VIBRATION = "vibration"  # Отображение событий физического воздействия: вибрация, падение, переворачивание.
+    OPEN = "open"  # Отображение событий открытия/закрытия дверей, окон и т. п.
+    BUTTON = "button"  # Отображение событий нажатия кнопки.
+    MOTION = "motion"  # Отображение событий, связанных с наличием движения в области действия датчика.
+    SMOKE = "smoke"  # Отображение событий наличия дыма в помещении.
+    GAS = "gas"  # Отображение событий наличия газа в помещении.
+    BATTERY_LEVEL = "battery_level"  # Отображение событий заряда батареи.
+    WATER_LEVEL = "water_level"  # Отображение событий, связанных с уровнем воды.
+    WATER_LEAR = "water_leak"  # Отображение событий протечки воды.
+
+
+class Event(Enum):
+    """
+    https://yandex.ru/dev/dialogs/smart-home/doc/concepts/event-instance.html
+    """
+
+    TILT = "tilt"  # Переворачивание
+    FALL = "fall"  # Падение
+    VIBRATION = "vibration"  # Вибрация
+    OPENED = "opened"  # Открыто
+    CLOSED = "closed"  # Закрыто
+    CLICK = "click"  # Одиночное нажатие
+    DOUBLE_CLICK = "double_click"  # Двойное нажатие
+    LONG_PRESS = "long_press"  # Долгое нажатие
+    DETECTED = "detected"  # Обнаружено
+    NOT_DETECTED = "not_detected"  # Не обнаружено
+    HIGH = "high"  # Высокий уровень
+    LOW = "low"  # Низкий
+    NORMAL = "normal"  # Нормальный
+    DRY = "dry"  # Нет протечки
+    LEAK = "leak"  # Протечка
+
+
+ALLOWED_EVENTS_BY_EVENT_INSTANCE = {
+    EventInstance.VIBRATION.value: [Event.TILT.value, Event.FALL.value, Event.VIBRATION.value],
+    EventInstance.OPEN.value: [Event.OPENED.value, Event.CLOSED.value],
+    EventInstance.BUTTON.value: [Event.CLICK.value, Event.DOUBLE_CLICK.value, Event.LONG_PRESS.value],
+    EventInstance.MOTION.value: [Event.DETECTED.value, Event.NOT_DETECTED.value],
+    EventInstance.SMOKE.value: [Event.DETECTED.value, Event.NOT_DETECTED.value, Event.HIGH.value],
+    EventInstance.GAS.value: [Event.DETECTED.value, Event.NOT_DETECTED.value, Event.HIGH.value],
+    EventInstance.BATTERY_LEVEL.value: [Event.LOW.value, Event.HIGH.value],
+    EventInstance.WATER_LEVEL.value: [Event.LOW.value, Event.NORMAL.value],
+    EventInstance.WATER_LEAR.value: [Event.DRY.value, Event.LEAK.value]
+}
+
