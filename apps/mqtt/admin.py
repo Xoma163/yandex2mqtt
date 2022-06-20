@@ -1,9 +1,9 @@
 from django.contrib import admin
+
+from .forms import MqttConfigForm
 from .models import *
 
 
-# Register your models here.
-
 @admin.register(MqttConfig)
 class MqttConfigAdmin(admin.ModelAdmin):
-    pass
+    form = MqttConfigForm
