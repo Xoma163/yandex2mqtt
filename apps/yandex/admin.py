@@ -1,14 +1,19 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
+
+from .forms import PropertyAdminForm, CapabilityAdminForm
 from .models import *
 
 
-@admin.register(Capability)
-class CapabilityAdmin(ModelAdmin):
+class BaseAbilityModelAdmin(ModelAdmin):
     list_display = ('__str__', 'type')
-    readonly_fields = ('state', 'parameters',)
+    readonly_fields = ('parameters',)
     list_filter = ('device__author', 'device__yd', 'device__room', 'device', 'type')
     search_fields = ('name',)
+
+
+@admin.register(Capability)
+class CapabilityAdmin(BaseAbilityModelAdmin, ModelAdmin):
     fieldsets = (
         ('Общее', {
             'fields': ('name', 'type', 'device', 'retrievable', 'reportable', 'state', 'parameters'),
@@ -35,15 +40,11 @@ class CapabilityAdmin(ModelAdmin):
             'fields': ('protocol',),
         })
     )
+    form = CapabilityAdminForm
 
 
 @admin.register(Property)
-class PropertyAdmin(ModelAdmin):
-    list_display = ('__str__', 'type')
-    readonly_fields = ('state', 'parameters',)
-    list_filter = ('device__author', 'device__yd', 'device__room', 'device', 'type')
-
-    search_fields = ('name',)
+class PropertyAdmin(BaseAbilityModelAdmin, ModelAdmin):
     fieldsets = (
         ('Общее', {
             'fields': ('name', 'type', 'device', 'retrievable', 'reportable', 'state', 'parameters'),
@@ -58,6 +59,7 @@ class PropertyAdmin(ModelAdmin):
             'fields': ('event_instance', 'events'),
         })
     )
+    form = PropertyAdminForm
 
 
 @admin.register(YandexDialog)

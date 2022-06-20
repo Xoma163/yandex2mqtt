@@ -13,8 +13,6 @@ from ..mqtt.MqttClient import MqttClient
 from ..mqtt.models import MqttConfig
 
 
-# ToDo: pretty validators for all raises in model.save()
-
 class Room(models.Model):
     name = models.CharField("Комната", max_length=100)
 
@@ -184,7 +182,7 @@ class Capability(BaseAbilityModel, models.Model):
     # Mode
     mode_instance = models.CharField("Название функции для свойства", max_length=50, choices=ModeInstanceChoices,
                                      blank=True)
-    modes = ChoiceArrayField(models.CharField("Режимы", max_length=50, choices=ModeChoices, blank=True))
+    modes = ChoiceArrayField(models.CharField("Режимы", max_length=50, choices=ModeChoices),blank=True)
 
     # OnOff
     split = models.BooleanField("split", blank=True,
@@ -220,9 +218,6 @@ class Capability(BaseAbilityModel, models.Model):
         super(Capability, self).save(**kwargs)
 
     def init_color_settings(self):
-        if not self.color_model and not self.temp_k_min and not self.temp_k_max:
-            raise RuntimeError(
-                f"color_model or temp_k_min or temp_k_max must be provided for type {self.get_type_display()}")
         self.parameters = {}
         if self.color_model:
             self.parameters["color_model"] = self.color_model  # hsv/rgb
@@ -243,12 +238,7 @@ class Capability(BaseAbilityModel, models.Model):
                         "value": 0
                     })
 
-        if self.temp_k_min and self.temp_k_max is None or self.temp_k_max and self.temp_k_min is None:
-            raise RuntimeError("temp_k_min and temp_k_max must be provided together")
-
         if self.temp_k_max and self.temp_k_min:
-            if self.temp_k_max < self.temp_k_min:
-                raise RuntimeError("temp_k_max must be higher than temp_k_min")
             self.parameters['temperature_k'] = {"min": self.temp_k_min, "max": self.temp_k_max}
             if not self.state:
                 self.state.append({
@@ -257,8 +247,6 @@ class Capability(BaseAbilityModel, models.Model):
                 })
 
     def init_mode(self):
-        if not self.mode_instance or len(self.modes) == 0:
-            raise RuntimeError(f"mode_instance and modes must be provided for type {self.get_type_display()}")
         self.parameters["instance"] = self.mode_instance
         self.parameters["modes"] = [{"value": x} for x in self.modes]
         if not self.state:
@@ -280,32 +268,16 @@ class Capability(BaseAbilityModel, models.Model):
             })
 
     def init_range(self):
-        if not self.range_instance:
-            raise RuntimeError(f"range_instance must be provided for type {self.get_type_display()}")
-
         self.parameters["instance"] = self.range_instance
-
         if self.unit:
-            if self.unit not in ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE[self.range_instance]:
-                allowed_units_str = ", ".join(ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE[self.range_instance])
-                raise RuntimeError(f"unit must be in {allowed_units_str} for type {self.get_type_display()}")
             self.parameters["unit"] = self.unit
 
         if self.random_access is not None:
             self.parameters["random_access"] = self.random_access
 
         if self.range_min or self.range_max or self.range_precision:
-            if self.range_min and self.range_max is None or self.range_max and self.range_min is None:
-                raise RuntimeError("range_min and range_max must be provided together")
-            if self.range_min > self.range_max:
-                raise RuntimeError("range_min must be lower that range_max")
-
             self.parameters["range"] = {'min': self.range_min, 'max': self.range_max}
-
             if self.range_precision is not None:
-                if self.range_min is None or self.range_max is None:
-                    raise RuntimeError("range_precision, range_min and range_max must be provided together")
-
                 self.parameters["range"]['precision'] = self.range_precision
 
         if not self.state:
@@ -315,8 +287,6 @@ class Capability(BaseAbilityModel, models.Model):
             })
 
     def init_toggle(self):
-        if not self.toggle_instance:
-            raise RuntimeError(f"toggle_instance must be provided for type {self.get_type_display()}")
         self.parameters["instance"] = self.toggle_instance
         if not self.state:
             self.state.append({
@@ -327,9 +297,6 @@ class Capability(BaseAbilityModel, models.Model):
     def init_video_stream(self):
         self.retrievable = False
         self.reportable = False
-        if not self.protocol:
-            raise RuntimeError(f"protocol must be provided for type {self.get_type_display()}")
-
         self.parameters = {
             "protocols": [self.protocol]
         }
@@ -374,7 +341,6 @@ class Capability(BaseAbilityModel, models.Model):
         return data
 
     def update_mqtt_state(self, new_state):
-        # ToDo:
         client = MqttClient(self.mqtt_config)
         client.publish_message(self.command_topic, new_state)
 
@@ -409,14 +375,8 @@ class Property(BaseAbilityModel, models.Model):
         super(Property, self).save(**kwargs)
 
     def init_float(self):
-        if not self.float_instance:
-            raise RuntimeError(f"float_instance must be provided for type {self.get_type_display()}")
         self.parameters["instance"] = self.float_instance
-
         if self.unit:
-            if self.unit not in ALLOWED_UNITS_BY_FLOAT_INSTANCE[self.float_instance]:
-                allowed_units_str = ", ".join(ALLOWED_UNITS_BY_FLOAT_INSTANCE[self.float_instance])
-                raise RuntimeError(f"unit must be in {allowed_units_str} for type {self.get_type_display()}")
             self.parameters["unit"] = self.unit
 
         if not self.state:
@@ -426,14 +386,7 @@ class Property(BaseAbilityModel, models.Model):
             })
 
     def init_event(self):
-        if not self.event_instance or len(self.events) == 0:
-            raise RuntimeError(f"mode_instance and modes must be provided for type {self.get_type_display()}")
         self.parameters["instance"] = self.event_instance
-
-        for event in self.events:
-            if event not in ALLOWED_EVENTS_BY_EVENT_INSTANCE[self.event_instance]:
-                allowed_events_str = ", ".join(ALLOWED_EVENTS_BY_EVENT_INSTANCE[self.event_instance])
-                raise RuntimeError(f"event must be in {allowed_events_str} for type {self.get_type_display()}")
         self.parameters["events"] = [{"value": x} for x in self.events]
         if not self.state:
             self.state.append({
