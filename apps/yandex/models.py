@@ -5,11 +5,9 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-from .consts import Status, ALLOWED_RANGE_UNITS_BY_RANGE_INSTANCE, ALLOWED_UNITS_BY_FLOAT_INSTANCE, \
-    ALLOWED_EVENTS_BY_EVENT_INSTANCE
+from .consts import Status
 from .model_consts import *
 from ..main.models import UUIDModel, ChoiceArrayField
-from ..mqtt.MqttClient import MqttClient
 from ..mqtt.models import MqttConfig
 
 
@@ -119,6 +117,9 @@ class BaseAbilityModel(models.Model):
     # mqtt
     mqtt_config = models.ForeignKey(MqttConfig, verbose_name="Конфигурация MQTT", on_delete=models.SET_NULL, null=True)
     state_topic = models.CharField("Топик для состояния", max_length=100)
+    state_topic_retriever = models.CharField("JsonPathRetriever топика для состояния", default="",
+                                             help_text="https://pypi.org/project/jsonpath-ng/ Пример: $.Sensors.Temperature",
+                                             max_length=100, blank=True)
 
     def get_for_device_list(self):
         return {
@@ -156,7 +157,7 @@ class BaseAbilityModel(models.Model):
         res = requests.post(url, json=data, headers=headers)
         if not res.ok:
             # ToDo: logging
-            pass
+            print(res.json())
         return res
 
     class Meta:
@@ -182,7 +183,7 @@ class Capability(BaseAbilityModel, models.Model):
     # Mode
     mode_instance = models.CharField("Название функции для свойства", max_length=50, choices=ModeInstanceChoices,
                                      blank=True)
-    modes = ChoiceArrayField(models.CharField("Режимы", max_length=50, choices=ModeChoices),blank=True)
+    modes = ChoiceArrayField(models.CharField("Режимы", max_length=50, choices=ModeChoices), blank=True)
 
     # OnOff
     split = models.BooleanField("split", blank=True,
@@ -341,6 +342,7 @@ class Capability(BaseAbilityModel, models.Model):
         return data
 
     def update_mqtt_state(self, new_state):
+        from ..mqtt.MqttClient import MqttClient
         client = MqttClient(self.mqtt_config)
         client.publish_message(self.command_topic, new_state)
 
@@ -366,13 +368,13 @@ class Property(BaseAbilityModel, models.Model):
                                       blank=True)
     events = ChoiceArrayField(models.CharField("События", max_length=50, choices=EventChoices), blank=True)
 
-    def save(self, **kwargs):
+    def save(self, *args, **kwargs):
         constructor_map = {
             PropertyType.FLOAT.value: self.init_float,
             PropertyType.EVENT.value: self.init_event,
         }
         constructor_map[self.type]()
-        super(Property, self).save(**kwargs)
+        super(Property, self).save(*args, **kwargs)
 
     def init_float(self):
         self.parameters["instance"] = self.float_instance

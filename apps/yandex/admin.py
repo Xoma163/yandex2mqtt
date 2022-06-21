@@ -19,7 +19,7 @@ class CapabilityAdmin(BaseAbilityModelAdmin, ModelAdmin):
             'fields': ('name', 'type', 'device', 'retrievable', 'reportable', 'state', 'parameters'),
         }),
         ('mqtt', {
-            'fields': ('mqtt_config', 'command_topic', 'state_topic'),
+            'fields': ('mqtt_config', 'command_topic', 'state_topic', 'state_topic_retriever'),
         }),
         ('ColorSetting', {
             'fields': ('color_model', 'temp_k_min', 'temp_k_max'),
@@ -50,7 +50,7 @@ class PropertyAdmin(BaseAbilityModelAdmin, ModelAdmin):
             'fields': ('name', 'type', 'device', 'retrievable', 'reportable', 'state', 'parameters'),
         }),
         ('mqtt', {
-            'fields': ('mqtt_config', 'state_topic'),
+            'fields': ('mqtt_config', 'state_topic', 'state_topic_retriever'),
         }),
         ('Float', {
             'fields': ('float_instance', 'unit'),

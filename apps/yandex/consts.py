@@ -336,3 +336,21 @@ ALLOWED_EVENTS_BY_EVENT_INSTANCE = {
     EventInstance.WATER_LEAR.value: [Event.DRY.value, Event.LEAK.value]
 }
 
+TF_TRANSLATOR = {
+    'вкл': True,
+    'включено': True,
+    'on': True,
+    '1': True,
+    'true': True,
+    'он-лайн': True,
+    'онлайн': True,
+
+    'выкл': False,
+    'off': False,
+    '0': False,
+    'false': False,
+    'выключить': False,
+    'выключи': False,
+    'выруби': False,
+    'отключи': False
+}
