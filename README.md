@@ -56,3 +56,6 @@ openhab-cloud)
 ## FAQ
 
 Надеюсь, не придётся заполнять, потому что должно быть всё понятно и так
+
+## Спасибо
+[TrashRoach](https://github.com/TrashRoach "TrashRoach")
