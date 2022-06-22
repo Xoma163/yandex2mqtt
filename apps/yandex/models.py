@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 import requests
 from django.contrib.auth import get_user_model
@@ -9,6 +10,9 @@ from .consts import Status
 from .model_consts import *
 from ..main.models import UUIDModel, ChoiceArrayField
 from ..mqtt.models import MqttConfig
+
+mqtt_logger = logging.getLogger("mqtt")
+yandex_logger = logging.getLogger("yandex")
 
 
 class Room(models.Model):
@@ -156,8 +160,10 @@ class BaseAbilityModel(models.Model):
         }
         res = requests.post(url, json=data, headers=headers)
         if not res.ok:
-            # ToDo: logging
-            print(res.json())
+            yandex_logger.error(
+                f"Ошибка при отправке запроса на обновление состояния устройства Запрос - {res.json()}. Отправленные данные - {data}")
+        else:
+            yandex_logger.info(f"Способность \"{self}\" устройства \"{self.device}\" была успешно обновлена")
         return res
 
     class Meta:
@@ -309,6 +315,7 @@ class Capability(BaseAbilityModel, models.Model):
 
     def set_state(self, new_state):
         # ToDo: test color
+        yandex_logger.info("Обновление состояния устройства")
         error = None
         try:
             _self_state = []
@@ -321,6 +328,7 @@ class Capability(BaseAbilityModel, models.Model):
             self.state = _self_state
             self.save()
         except Exception as e:
+            yandex_logger.exception(f"Ошибка обновления состояния способности \"{self}\"")
             error = f"Ошибка какая-то\n{str(e)}"
 
         data = {
@@ -338,6 +346,7 @@ class Capability(BaseAbilityModel, models.Model):
                 "status": Status.ERROR.value,
                 "error_message": error
             }
+        yandex_logger.debug(f"Новое состояние способности \"{self}\": {new_state}")
 
         return data
 

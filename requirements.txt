@@ -26,3 +26,4 @@ urllib3==1.26.9
 uWSGI==2.0.20
 virtualenv==20.14.1
 wrapt==1.14.1
+colorlog==6.6.0

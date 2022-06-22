@@ -152,44 +152,62 @@ if not os.path.exists(LOGS_DIR):
 DEBUG_FILE = os.path.join(LOGS_DIR, 'debug.log')
 ERROR_FILE = os.path.join(LOGS_DIR, 'error.log')
 
+MB_100 = 100 * 1024 * 1024
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'default': {
-            'format': '%(levelname)-8s %(asctime)-25s %(message)s',
+        'verbose': {
+            'format': '%(levelname)-8s %(name)-7s %(asctime)-25s %(module) %(process:d) %(thread:d) %(message)s',
+        },
+        'simple': {
+            'format': '%(levelname)-8s %(name)-7s %(asctime)-25s %(message)s',
+        },
+        'color_simple': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': '%(log_color)s%(levelname)-8s %(name)-7s %(asctime)-25s %(message)s',
+            'log_colors': {
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'red,bg_white',
+            },
         }
     },
     'handlers': {
         'file-debug': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'backupCount': 10,  # keep at most 10 log files
+            'maxBytes': MB_100,
             'filename': DEBUG_FILE,
-            'formatter': 'default',
+            'formatter': 'simple',
         },
         'file-error': {
             'level': 'ERROR',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'backupCount': 10,  # keep at most 10 log files
+            'maxBytes': MB_100,
             'filename': ERROR_FILE,
-            'formatter': 'default',
+            'formatter': 'verbose',
         },
-        'console-warn': {
-            'level': 'WARNING',
+        'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'default',
-        },
-        'console-debug': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'default',
+            'formatter': 'color_simple',
         },
     },
     'loggers': {
-        '': {
-            'handlers': ['file-debug', 'file-error', 'console-debug', 'console-warn'],
+        'mqtt': {
+            'handlers': ['file-debug', 'file-error', 'console'],
+            'level': 'DEBUG'
+        },
+        'yandex': {
+            'handlers': ['file-debug', 'file-error', 'console'],
             'level': 'DEBUG'
         }
-    },
+    }
 }
 
 WEBPACK_DEV_SERVER = DEBUG

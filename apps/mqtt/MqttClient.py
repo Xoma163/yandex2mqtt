@@ -1,3 +1,5 @@
+import logging
+
 import paho.mqtt.client as mqtt
 import json
 
@@ -8,6 +10,8 @@ from jsonpath_ng import parse
 
 from apps.mqtt.models import MqttConfig
 from apps.yandex.models import Capability, Property
+
+logger = logging.getLogger("mqtt")
 
 
 class MqttClient:
@@ -23,6 +27,7 @@ class MqttClient:
         self.topic_devices = {}
 
     def loop(self):
+        logger.info(f"Старт вечного слушателя mqtt для конфига {self._config}")
         self.client.loop_forever()
 
     def subscribe(self):
@@ -61,12 +66,12 @@ class MqttClient:
             self.unsub_topic(instance.state_topic)
 
     def sub_topic(self, topic, device):
-        print(f'\t\t\tsub {topic}')
+        logger.info(f"Подписались на топик \"{topic}\"")
         self.topic_devices[topic] = device
         self.client.subscribe(topic)
 
     def unsub_topic(self, topic):
-        print(f'\t\t\tunsub {topic}')
+        logger.info(f"Отписались от топика \"{topic}\"")
         self.client.unsubscribe(topic)
         del self.topic_devices[topic]
 
@@ -80,15 +85,16 @@ class MqttClient:
     @staticmethod
     def on_connect(client, userdata, flags, rc):
         if rc != 0:
+            logger.error("Ошибка подключения к mqtt")
             raise RuntimeError(f"MqttClient connected with error_code={rc}")
+        logger.info("Успешно подключено к mqtt")
 
     def on_message(self, client, userdata, msg):
         self.handle_message(msg.topic, msg.payload.decode())
 
     def handle_message(self, topic, msg):
         if topic not in self.topic_devices:
-            # ToDo: logging
-            print("topic not in self.topic_devices")
+            logger.error(f"topic {topic}" "not in self.topic_devices")
             return
         ability = self.topic_devices[topic]
 
@@ -96,6 +102,8 @@ class MqttClient:
             value = parse(ability.state_topic_retriever).find(json.loads(msg))[0].value
         else:
             value = msg
+        data = {"topic": topic, "msg": msg, "value": value, "ability": ability}
+        logger.debug(f"Получено сообщение mqtt: {data}")
 
         if ability.type == PropertyType.FLOAT:
             ability.state[0]['value'] = float(value)
@@ -125,11 +133,8 @@ class MqttClient:
         ability.save()
         ability.update_yandex_state()
 
-        print(f"Topic: {topic}")
-        print(f"Msg: {msg}")
-        print(f"Value: {value}")
-
     def publish_message(self, topic, payload):
+        logger.info(f"Отправляем сообщение в топик \"{topic}\", сообщение \"{payload}\"")
         if isinstance(payload, dict):
             _payload = json.dumps(payload)
         else:
