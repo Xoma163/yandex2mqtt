@@ -106,7 +106,9 @@ class MqttClient:
             value = msg
         data = {"topic": topic, "msg": msg, "value": value, "ability": str(ability)}
         logger.debug(f"Получено сообщение mqtt: {data}")
-        logger.debug(f"ability.type = {ability.type}")
+        logger.debug(f"{ability.type =}")
+        logger.debug(f"{PropertyType.FLOAT =}")
+        logger.debug(ability.type == PropertyType.FLOAT)
 
         if ability.type == PropertyType.FLOAT:
             logger.debug("set PropertyType.FLOAT")
