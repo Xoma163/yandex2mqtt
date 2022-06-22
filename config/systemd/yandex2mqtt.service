@@ -7,9 +7,9 @@ Restart=always
 RestartSec=5
 Nice=1
 SuccessExitStatus=0 1
-WorkingDirectory=/home/andrewsha/projects/yandex2mqtt
-ExecStart=/home/andrewsha/projects/yandex2mqtt/venv/bin/uwsgi --ini config/uwsgi/uwsgi.ini
-ExecStop=/home/andrewsha/projects/yandex2mqtt/venv/bin/uwsgi --stop config/yandex2mqtt.pid
+WorkingDirectory=/srv/andrewsha/yandex2mqtt
+ExecStart=/srv/andrewsha/yandex2mqtt/venv/bin/uwsgi --ini config/uwsgi/uwsgi.ini
+ExecStop=/srv/andrewsha/yandex2mqtt/venv/bin/uwsgi --stop config/yandex2mqtt.pid
 
 [Install]
 WantedBy=multi-user.target
