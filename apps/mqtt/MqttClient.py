@@ -89,7 +89,10 @@ class MqttClient:
         logger.info("Успешно подключено к mqtt")
 
     def on_message(self, client, userdata, msg):
-        self.handle_message(msg.topic, msg.payload.decode())
+        try:
+            self.handle_message(msg.topic, msg.payload.decode())
+        except Exception as e:
+            logger.exception("Ошибка в on_message")
 
     def handle_message(self, topic, msg):
         if topic not in self.topic_devices:
@@ -105,6 +108,7 @@ class MqttClient:
         logger.debug(f"Получено сообщение mqtt: {data}")
 
         if ability.type == PropertyType.FLOAT:
+            logger.debug("set PropertyType.FLOAT")
             ability.state[0]['value'] = float(value)
         elif ability.type == PropertyType.EVENT:
             # ToDo:
@@ -130,6 +134,7 @@ class MqttClient:
             ability.state[0]['value'] = bool(TF_TRANSLATOR[value])
 
         ability.save()
+        logger.debug("ability.save()")
         ability.update_yandex_state()
 
     def publish_message(self, topic, payload):
