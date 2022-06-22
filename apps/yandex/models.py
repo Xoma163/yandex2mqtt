@@ -47,10 +47,9 @@ class Device(UUIDModel, models.Model):
     """
     author = models.ForeignKey(get_user_model(), verbose_name="Автор", on_delete=models.CASCADE, related_name="devices")
     yd = models.ForeignKey(YandexDialog, verbose_name="Яндекс диалог (навык)", on_delete=models.CASCADE)
-    name = models.CharField("Название", max_length=100)
-    type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50,
-                            help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
-    room = models.ForeignKey(Room, on_delete=models.SET_NULL, verbose_name="Комната", null=True, blank=True)
+    name = models.CharField("Название", max_length=100, help_text="Название которое будет указано в Яндексе")
+    type = models.CharField("Тип", choices=DeviceTypeChoices, max_length=50, help_text="https://yandex.ru/dev/dialogs/smart-home/doc/concepts/device-types.html")
+    room = models.ForeignKey(Room, on_delete=models.SET_NULL, verbose_name="Комната", null=True, blank=True, help_text="Если указано, устройство само добавится в Яндексе в нужную комнату")
     description = models.TextField("Описание", max_length=100, blank=True)
     custom_data = models.JSONField(default=dict, verbose_name="Кастомные данные", blank=True)
 
@@ -96,7 +95,6 @@ class Device(UUIDModel, models.Model):
             'id': str(self.pk),
             'capabilities': []
         }
-        # ToDo: new state
         if self.capabilities:
             for capability in self.capabilities.all():
                 for value in new_values:

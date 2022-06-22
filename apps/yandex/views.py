@@ -1,10 +1,12 @@
 import json
+import logging
 
 from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.views import View
 from apps.main.mixins import CSRFExemptMixin
 
+logger = logging.getLogger("yandex")
 
 class UTF8JsonResponse(JsonResponse):
     def __init__(self, *args, json_dumps_params=None, **kwargs):
@@ -32,7 +34,7 @@ class UserDevicesView(View):
                 "devices": devices_data
             }
         }
-
+        logger.debug({'response_data':response_data})
         return UTF8JsonResponse(response_data, status=200)
 
 
@@ -51,6 +53,7 @@ class UserDevicesActionView(CSRFExemptMixin, View):
                 "devices": devices_data
             }
         }
+        logger.debug({'response_data':response_data})
         return UTF8JsonResponse(response_data, status=200)
 
 
@@ -69,7 +72,7 @@ class UserDevicesQueryView(CSRFExemptMixin, View):
                 "devices": devices_data
             }
         }
-
+        logger.debug({'response_data':response_data})
         return UTF8JsonResponse(response_data, status=200)
 
 

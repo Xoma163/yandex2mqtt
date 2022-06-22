@@ -42,7 +42,6 @@ class MqttClient:
         post_delete.connect(self.signal_delete, sender=Capability)
         post_delete.connect(self.signal_delete, sender=Property)
 
-    # ToDo: change topic devices
     def signal_save(self, sender, instance, *args, **kwargs):
         if instance.mqtt_config != self._config:
             return
@@ -102,7 +101,7 @@ class MqttClient:
             value = parse(ability.state_topic_retriever).find(json.loads(msg))[0].value
         else:
             value = msg
-        data = {"topic": topic, "msg": msg, "value": value, "ability": ability}
+        data = {"topic": topic, "msg": msg, "value": value, "ability": str(ability)}
         logger.debug(f"Получено сообщение mqtt: {data}")
 
         if ability.type == PropertyType.FLOAT:
