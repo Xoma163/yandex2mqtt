@@ -3,7 +3,7 @@ import json
 
 from django.db.models.signals import post_save, post_delete
 
-from apps.yandex.consts import PropertyType, ALLOWED_EVENTS_BY_EVENT_INSTANCE, CapabilityType
+from apps.yandex.consts import PropertyType, ALLOWED_EVENTS_BY_EVENT_INSTANCE, CapabilityType, TF_TRANSLATOR
 from jsonpath_ng import parse
 
 from apps.mqtt.models import MqttConfig
@@ -27,13 +27,10 @@ class MqttClient:
 
     def subscribe(self):
         for cap in Capability.objects.filter(mqtt_config=self._config):
-            self.topic_devices[cap.state_topic] = cap
+            self.sub_topic(cap.state_topic, cap)
 
         for prop in Property.objects.filter(mqtt_config=self._config):
-            self.topic_devices[prop.state_topic] = prop
-
-        for topic in self.topic_devices:
-            self.client.subscribe(topic)
+            self.sub_topic(prop.state_topic, prop)
 
         post_save.connect(self.signal_save, sender=Capability)
         post_save.connect(self.signal_save, sender=Property)
@@ -47,26 +44,46 @@ class MqttClient:
 
         created = kwargs['created']
         if created:
-            self.topic_devices[instance.state_topic] = instance
-            self.client.subscribe(instance.state_topic)
+            self.sub_topic(instance.state_topic, instance)
+        else:
+            if instance.state_topic not in self.topic_devices:
+                topic_by_instance = self.get_topic_by_device(instance)
+                if not topic_by_instance:
+                    return
+                self.sub_topic(instance.state_topic, instance)
+                self.unsub_topic(topic_by_instance)
 
     def signal_delete(self, sender, instance, *args, **kwargs):
         if instance.mqtt_config != self._config:
             return
 
         if instance.state_topic in self.topic_devices:
-            self.client.unsubscribe(instance.state_topic)
-            del self.topic_devices[instance.state_topic]
+            self.unsub_topic(instance.state_topic)
+
+    def sub_topic(self, topic, device):
+        print(f'\t\t\tsub {topic}')
+        self.topic_devices[topic] = device
+        self.client.subscribe(topic)
+
+    def unsub_topic(self, topic):
+        print(f'\t\t\tunsub {topic}')
+        self.client.unsubscribe(topic)
+        del self.topic_devices[topic]
+
+    def get_topic_by_device(self, looking_for_device):
+        for topic in self.topic_devices:
+            device = self.topic_devices[topic]
+            if device == looking_for_device:
+                return topic
+        return None
+
     @staticmethod
     def on_connect(client, userdata, flags, rc):
         if rc != 0:
             raise RuntimeError(f"MqttClient connected with error_code={rc}")
-        # client.subscribe("#")
 
     def on_message(self, client, userdata, msg):
-        topic = msg.topic
-        decoded_msg = msg.payload.decode()
-        self.handle_message(topic, decoded_msg)
+        self.handle_message(msg.topic, msg.payload.decode())
 
     def handle_message(self, topic, msg):
         if topic not in self.topic_devices:
@@ -85,33 +102,32 @@ class MqttClient:
         elif ability.type == PropertyType.EVENT:
             # ToDo:
             allowed_values = ALLOWED_EVENTS_BY_EVENT_INSTANCE[ability.state[0]['instance']]
+            if value in allowed_values:
+                ability.state[0]['value'] = float(value)
 
         elif ability.type == CapabilityType.ON_OFF:
-            # ToDo: true/false translator
-            ability.state[0]['value'] = bool(value)
-            pass
+            ability.state[0]['value'] = bool(TF_TRANSLATOR[value.lower()])
         elif ability.type == CapabilityType.COLOR_SETTING:
             # ToDo: F
-            # ability.state[0]['value'] = bool(value)
             pass
         elif ability.type == CapabilityType.VIDEO_STREAM:
             ability.state[0]['value']['protocols'] = value
         elif ability.type == CapabilityType.MODE:
             # ToDo:
             allowed_values = ability.modes
+            if value in allowed_values:
+                ability.state[0]['value'] = float(value)
         elif ability.type == CapabilityType.RANGE:
-            # ToDo:
-            ability.state[0]['value']['protocols'] = float(value)
+            ability.state[0]['value'] = float(value)
         elif ability.type == CapabilityType.TOGGLE:
-            # ToDo: true/false translator
-            ability.state[0]['value']['protocols'] = bool(value)
+            ability.state[0]['value'] = bool(TF_TRANSLATOR[value])
 
         ability.save()
         ability.update_yandex_state()
 
-        print(topic)
-        print(msg)
-        print(value)
+        print(f"Topic: {topic}")
+        print(f"Msg: {msg}")
+        print(f"Value: {value}")
 
     def publish_message(self, topic, payload):
         if isinstance(payload, dict):

@@ -339,18 +339,23 @@ ALLOWED_EVENTS_BY_EVENT_INSTANCE = {
 TF_TRANSLATOR = {
     'вкл': True,
     'включено': True,
+    'подключено': True,
     'on': True,
+    'online': True,
+    'on-line': True,
     '1': True,
     'true': True,
     'он-лайн': True,
     'онлайн': True,
 
     'выкл': False,
+    'выключено': False,
     'off': False,
+    'offline': False,
+    'off-line': False,
     '0': False,
     'false': False,
-    'выключить': False,
-    'выключи': False,
-    'выруби': False,
-    'отключи': False
+    'офф': False,
+    'оффлайн': False,
+    'отключено': False,
 }
