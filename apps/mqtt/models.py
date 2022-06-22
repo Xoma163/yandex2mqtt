@@ -1,7 +1,6 @@
 from django.db import models
 
 
-# Create your models here.
 class MqttConfig(models.Model):
     login = models.CharField("Логин", max_length=100, blank=True)
     password = models.CharField("Пароль", max_length=100, blank=True)

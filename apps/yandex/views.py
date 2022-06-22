@@ -8,6 +8,7 @@ from apps.main.mixins import CSRFExemptMixin
 
 logger = logging.getLogger("yandex")
 
+
 class UTF8JsonResponse(JsonResponse):
     def __init__(self, *args, json_dumps_params=None, **kwargs):
         json_dumps_params = {"ensure_ascii": False, **(json_dumps_params or {})}
@@ -34,7 +35,7 @@ class UserDevicesView(View):
                 "devices": devices_data
             }
         }
-        logger.debug({'response_data':response_data})
+        logger.debug({'response_data': response_data})
         return UTF8JsonResponse(response_data, status=200)
 
 
@@ -45,7 +46,8 @@ class UserDevicesActionView(CSRFExemptMixin, View):
             return HttpResponse(status=200)
         body = json.loads(request.body)
         devices = body['payload']['devices']
-        devices_data = [request.user.devices.get(pk=device['id']).get_for_switch_state(device['capabilities']) for device in
+        devices_data = [request.user.devices.get(pk=device['id']).get_for_switch_state(device['capabilities']) for
+                        device in
                         devices]
         response_data = {
             "request_id": request.headers['X-Request-Id'],
@@ -53,7 +55,7 @@ class UserDevicesActionView(CSRFExemptMixin, View):
                 "devices": devices_data
             }
         }
-        logger.debug({'response_data':response_data})
+        logger.debug({'response_data': response_data})
         return UTF8JsonResponse(response_data, status=200)
 
 
@@ -72,7 +74,7 @@ class UserDevicesQueryView(CSRFExemptMixin, View):
                 "devices": devices_data
             }
         }
-        logger.debug({'response_data':response_data})
+        logger.debug({'response_data': response_data})
         return UTF8JsonResponse(response_data, status=200)
 
 

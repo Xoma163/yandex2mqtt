@@ -31,16 +31,14 @@ class MqttClient:
         self.client.loop_forever()
 
     def subscribe(self):
-        for cap in Capability.objects.filter(mqtt_config=self._config):
-            self.sub_topic(cap.state_topic, cap)
+        self.sub_and_add_signals(Capability)
+        self.sub_and_add_signals(Property)
 
-        for prop in Property.objects.filter(mqtt_config=self._config):
-            self.sub_topic(prop.state_topic, prop)
-
-        post_save.connect(self.signal_save, sender=Capability)
-        post_save.connect(self.signal_save, sender=Property)
-        post_delete.connect(self.signal_delete, sender=Capability)
-        post_delete.connect(self.signal_delete, sender=Property)
+    def sub_and_add_signals(self, model):
+        for obj in model.objects.filter(mqtt_config=self._config):
+            self.sub_topic(obj.state_topic, obj)
+        post_save.connect(self.signal_save, sender=model)
+        post_delete.connect(self.signal_delete, sender=model)
 
     def signal_save(self, sender, instance, *args, **kwargs):
         if instance.mqtt_config != self._config:
@@ -106,38 +104,33 @@ class MqttClient:
             value = msg
         data = {"topic": topic, "msg": msg, "value": value, "ability": str(ability)}
         logger.debug(f"Получено сообщение mqtt: {data}")
-        logger.debug(f"{ability.type =}")
-        logger.debug(f"{PropertyType.FLOAT =}")
-        logger.debug(ability.type == PropertyType.FLOAT)
 
-        if ability.type == PropertyType.FLOAT:
-            logger.debug("set PropertyType.FLOAT")
+        if ability.type == PropertyType.FLOAT.value:
             ability.state[0]['value'] = float(value)
-        elif ability.type == PropertyType.EVENT:
+        elif ability.type == PropertyType.EVENT.value:
             # ToDo:
             allowed_values = ALLOWED_EVENTS_BY_EVENT_INSTANCE[ability.state[0]['instance']]
             if value in allowed_values:
                 ability.state[0]['value'] = float(value)
 
-        elif ability.type == CapabilityType.ON_OFF:
+        elif ability.type == CapabilityType.ON_OFF.value:
             ability.state[0]['value'] = bool(TF_TRANSLATOR[value.lower()])
-        elif ability.type == CapabilityType.COLOR_SETTING:
+        elif ability.type == CapabilityType.COLOR_SETTING.value:
             # ToDo: F
             pass
-        elif ability.type == CapabilityType.VIDEO_STREAM:
+        elif ability.type == CapabilityType.VIDEO_STREAM.value:
             ability.state[0]['value']['protocols'] = value
-        elif ability.type == CapabilityType.MODE:
+        elif ability.type == CapabilityType.MODE.value:
             # ToDo:
             allowed_values = ability.modes
             if value in allowed_values:
                 ability.state[0]['value'] = float(value)
-        elif ability.type == CapabilityType.RANGE:
+        elif ability.type == CapabilityType.RANGE.value:
             ability.state[0]['value'] = float(value)
-        elif ability.type == CapabilityType.TOGGLE:
+        elif ability.type == CapabilityType.TOGGLE.value:
             ability.state[0]['value'] = bool(TF_TRANSLATOR[value])
 
         ability.save()
-        logger.debug("ability.save()")
         ability.update_yandex_state()
 
     def publish_message(self, topic, payload):
