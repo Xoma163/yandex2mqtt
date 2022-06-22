@@ -149,7 +149,7 @@ if not os.path.exists(LOGS_DIR):
 DEBUG_FILE = os.path.join(LOGS_DIR, 'debug.log')
 ERROR_FILE = os.path.join(LOGS_DIR, 'error.log')
 
-MB_100 = 100 * 1024 * 1024
+MB_10 = 10 * 1024 * 1024
 
 LOGGING = {
     'version': 1,
@@ -177,16 +177,16 @@ LOGGING = {
         'file-debug': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'backupCount': 10,  # keep at most 10 log files
-            'maxBytes': MB_100,
+            'backupCount': 5,  # keep at most 10 log files
+            'maxBytes': MB_10,
             'filename': DEBUG_FILE,
             'formatter': 'simple',
         },
         'file-error': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
-            'backupCount': 10,  # keep at most 10 log files
-            'maxBytes': MB_100,
+            'backupCount': 5,  # keep at most 10 log files
+            'maxBytes': MB_10,
             'filename': ERROR_FILE,
             'formatter': 'verbose',
         },
@@ -220,9 +220,8 @@ WEBPACK_LOADER = {
     }
 }
 
-
 LOGIN_URL = '/admin/login/'
-CSRF_TRUSTED_ORIGINS = ['https://yandex2mqtt.andrewsha.net']
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": False
 }

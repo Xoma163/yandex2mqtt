@@ -1,5 +1,6 @@
 import datetime
 import logging
+from copy import copy
 
 import requests
 from django.contrib.auth import get_user_model
@@ -223,11 +224,12 @@ class Capability(BaseAbilityModel, models.Model):
         super(Capability, self).save(**kwargs)
 
     def init_color_settings(self):
+        state = copy(self.state)
         self.parameters = {}
         if self.color_model:
             self.parameters["color_model"] = self.color_model  # hsv/rgb
             if self.color_model == ColorModel.HSV.value:
-                if not self.state:
+                if not state:
                     self.state.append({
                         "instance": "hsv",
                         "value": {
@@ -237,7 +239,7 @@ class Capability(BaseAbilityModel, models.Model):
                         }
                     })
             elif self.color_model == ColorModel.RGB.value:
-                if not self.state:
+                if not state:
                     self.state.append({
                         "instance": "rgb",
                         "value": 0
@@ -245,7 +247,7 @@ class Capability(BaseAbilityModel, models.Model):
 
         if self.temp_k_max and self.temp_k_min:
             self.parameters['temperature_k'] = {"min": self.temp_k_min, "max": self.temp_k_max}
-            if not self.state:
+            if not state:
                 self.state.append({
                     "instance": "temperature_k",
                     "value": self.temp_k_min or self.temp_k_max
