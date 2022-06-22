@@ -1,3 +1,5 @@
+#!/bin/bash
+
 sudo apt update
 sudo apt install software-properties-common
 sudo add-apt-repository ppa:deadsnakes/ppa
@@ -18,6 +20,7 @@ read -p "Enter database url (e.g. postgres://USERNAME:PASSWORD@localhost:5432/DB
 sed -i "s#DATABASE_URL=postgres://USERNAME:PASSWORD@localhost:5432/DBNAME#DATABASE_URL=${database_url}#g" .env
 
 python manage.py migrate
+venv/bin/python manage.py collectstatic --noinput
 
 echo "Create superuser for django-admin"
 python manage.py createsuperuser
