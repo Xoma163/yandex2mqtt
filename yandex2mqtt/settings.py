@@ -221,6 +221,7 @@ WEBPACK_LOADER = {
 }
 
 LOGIN_URL = '/admin/login/'
+# ToDo: add yandex?
 CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": False

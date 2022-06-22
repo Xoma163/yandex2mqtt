@@ -7,7 +7,7 @@ from .models import *
 
 class BaseAbilityModelAdmin(ModelAdmin):
     list_display = ('__str__', 'type')
-    readonly_fields = ('parameters',)
+    readonly_fields = ('parameters', 'state')
     list_filter = ('device__author', 'device__yd', 'device__room', 'device', 'type')
     search_fields = ('name',)
 
