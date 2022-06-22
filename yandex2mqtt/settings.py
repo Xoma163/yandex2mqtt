@@ -43,11 +43,8 @@ DJANGO_APPS = [
 ]
 
 VENDOR_APPS = [
-    # 'webpack_loader',
-    'rest_framework',
     'oauth2_provider',
-    # 'corsheaders',
-    "django_extensions"
+    'corsheaders'
 ]
 
 # apps.*
@@ -64,7 +61,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -121,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
 LANGUAGE_CODE = 'ru-ru'
-TIME_ZONE = 'Europe/Samara'
+TIME_ZONE = 'Europe/Moscow'
 DEFAULT_TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_L10N = True
@@ -223,9 +220,6 @@ WEBPACK_LOADER = {
     }
 }
 
-REST_FRAMEWORK = {
-    'COERCE_DECIMAL_TO_STRING': False
-}
 
 LOGIN_URL = '/admin/login/'
 CSRF_TRUSTED_ORIGINS = ['https://yandex2mqtt.andrewsha.net']
