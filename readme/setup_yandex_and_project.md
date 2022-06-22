@@ -6,12 +6,12 @@
    этапе `createsuperuser`
 2. Создаём OAuth приложение. Устанавливаем следующие
    настройки `Redirect uris`: `https://social.yandex.net/broker/redirect`
-   ![OAuth Application](readme/oauth_application.png)
+   ![OAuth Application](assets/images/oauth_application.png)
    `Client secret` придётся немного подрезать по длине, так как у Яндекс есть ограничение на его длину
-   ![OAuth Application params](readme/oauth_application_params.png)
+   ![OAuth Application params](assets/images/oauth_application_params.png)
    `Client id` и `Client secret` нам пригодятся далее.
 3. Добавляем конфигурацию MQTT
-   ![mqtt params](readme/mqtt_params.png)
+   ![mqtt params](assets/images/mqtt_params.png)
 
 ### Настройка Яндекс навыка
 
@@ -19,10 +19,10 @@
    навык
 2. Заполняем настройки:
    Вкладка `Настройки`
-   ![Backend endpoint url](readme/backend_endpoint_url.png)
+   ![Backend endpoint url](assets/images/backend_endpoint_url.png)
    Вкладка `Связка аккаунтов`
    `{ALLOWED_HOSTS}`, `{ALLOWED_HOSTS}/oauth/authorize/`, `{ALLOWED_HOSTS}/oauth/token/`
-   ![Authorization](readme/authorization.png)
+   ![Authorization](assets/images/authorization.png)
 3. Публикуем навык
 
 После настройки навыка Яндекс, возвращаемся в админку django и добавляем информацию о нашем навыке.
@@ -33,12 +33,12 @@ OAuth токен получаем по [этой](https://dialogs.yandex.ru/deve
 ID навыка можно скопировать из адресной строки открытого навыка или на вкладке `общие сведения` в
 разделе `Идентификатор диалога`
 
-![Yandex dialog params](readme/yandex_dialog_params.png)
+![Yandex dialog params](assets/images/yandex_dialog_params.png)
 
 ### Связываем аккаунты проекта и Яндекс навыка
 
 1. Вкладка `тестирование`.
-   ![img.png](readme/yandex_testing_add_account.png)
+   ![img.png](assets/images/yandex_testing_add_account.png)
 3. Выбираем `Опубликованния версия`
 4. Выбираем устройство нового дома. Автоматически выберется наш навык. Жмём кнопку "привязать к яндексу"
 5. Вводим логин и пароль вашего пользователя которого создали на этапе `createsuperuser` и авторизовываем приложение

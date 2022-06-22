@@ -7,7 +7,7 @@
 1. Заранее создать базу данных (postgres, например)
 2. Конфигурируем под свои нужды `config/systemd/yandex2mqtt.service` и `config/nginx/yandex2mqtt.config`
 3. `./install.sh`
-4. В файле .env
+4. В файле .env изменяем ALLOWED_HOSTS на свой
 
 ### Ручной режим
 
@@ -24,15 +24,19 @@ pip install --upgrade pip setuptools virtualenv # обновляем pip setupto
 pip install -r requirements.txt # устанавливаем зависимости
 
 cp .env_example .env # копируем енвы
-# заполняем DATABASE_URL, ALLOWED_HOSTS, SECRET_KEY
+
+# Предварительно отредактируйте конфигурацию .env
+# заполняем DATABASE_URL, ALLOWED_HOSTS, SECRET_KEY (редактируем файл .env)
 
 python manage.py migrate # делаем миграции
 
-python manage.py createsuperuser # создаём суперюзера
+python manage.py createsuperuser # создаём суперюзера (запоминаем логин и пароль)
 
+# Предварительно отредактируйте конфигурацию config/systemd/yandex2mqtt.service
 sudo ln -s "$PWD/config/systemd/yandex2mqtt.service" /etc/systemd/system/ # создаём симлинк на сервис
 sudo systemctl daemon-reload # перезагружаем
 
+# Предварительно отредактируйте конфигурацию config/nginx/yandex2mqtt.config
 sudo ln -s "$PWD/config/nginx/yandex2mqtt.config" /etc/nginx/sites-enabled/ # создаём симлинк на конфиг nginx
 sudo systemctl restart nginx # перезагружаем
 
