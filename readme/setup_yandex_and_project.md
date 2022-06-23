@@ -23,12 +23,14 @@
    навык
 2. Заполняем настройки:
    Вкладка `Настройки`
+
    ![Backend endpoint url](assets/images/setup_yandex_and_project/backend_endpoint_url.png)
    
    Вкладка `Связка аккаунтов`
    `{ALLOWED_HOSTS}`, `{ALLOWED_HOSTS}/oauth/authorize/`, `{ALLOWED_HOSTS}/oauth/token/`
+
    ![Authorization](assets/images/setup_yandex_and_project/authorization.png)
-4. Публикуем навык
+3. Публикуем навык
 
 После настройки навыка Яндекс, возвращаемся в админку django и добавляем информацию о нашем навыке.
 
@@ -43,6 +45,7 @@ ID навыка можно скопировать из адресной стро
 ### Связываем аккаунты проекта и Яндекс навыка
 
 1. Вкладка `Тестирование`.
+
    ![img.png](assets/images/setup_yandex_and_project/yandex_testing_add_account.png)
 
 2. Выбираем `Опубликованния версия`
