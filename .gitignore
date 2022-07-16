@@ -135,3 +135,6 @@ node_modules/
 
 # pid
 config/*.pid
+
+# logs
+logs/*.log
