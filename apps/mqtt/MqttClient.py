@@ -1,4 +1,5 @@
 import logging
+import time
 
 import paho.mqtt.client as mqtt
 import json
@@ -22,9 +23,18 @@ class MqttClient:
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.username_pw_set(config.login, config.password)
-        self.client.connect(config.url, config.port, 60)
+        self._client_connect()
+        # self.client.connect(config.url, config.port, 60)
 
         self.topic_devices = {}
+
+    def _client_connect(self):
+        try:
+            self.client.connect(self._config.url, self._config.port, 60)
+        except ConnectionRefusedError:
+            logger.error("Не удалось подключиться к серверу MQTT")
+            time.sleep(5)
+            self._client_connect()
 
     def loop(self):
         logger.info(f"Старт вечного слушателя mqtt для конфига {self._config}")
