@@ -29,6 +29,7 @@ class MqttClient:
         self.topic_devices = {}
 
     def _client_connect(self):
+        logger.info(f"Подключаемся к mqtt")
         try:
             self.client.connect(self._config.url, self._config.port, 60)
         except ConnectionRefusedError:
